@@ -1,0 +1,28 @@
+{
+  "name": "abis-aplikasi-desa-digital",
+  "version": "1.0.0",
+  "description": "ABIS - Aplikasi Desa Digital - Sistem pengelolaan surat menyurat desa secara digital",
+  "main": "index.php",
+  "scripts": {
+    "dev": "npx @tailwindcss/cli -i ./resources/css/input.css -o ./public/assets/css/style.css --watch",
+    "build": "npx @tailwindcss/cli -i ./resources/css/input.css -o ./public/assets/css/style.css --minify",
+    "postinstall": "npm run build"
+  },
+  "keywords": [
+    "desa",
+    "digital",
+    "surat",
+    "php",
+    "tailwindcss",
+    "mysql"
+  ],
+  "author": "ABIS Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.18",
+    "tailwindcss": "^4.1.18"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

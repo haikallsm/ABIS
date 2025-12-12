@@ -1,0 +1,257 @@
+// Admin Requests management functionality
+
+document.addEventListener('DOMContentLoaded', function() {
+    initRequestManagement();
+});
+
+// Initialize request management
+function initRequestManagement() {
+    setupStatusSelectHandlers();
+    setupModalHandlers();
+    setupFormHandlers();
+}
+
+// Setup status select handlers
+function setupStatusSelectHandlers() {
+    document.querySelectorAll('.status-select').forEach(selectElement => {
+        updateStatusView(selectElement);
+        selectElement.addEventListener('change', function() {
+            updateStatusView(this);
+            handleStatusChange(this);
+        });
+    });
+}
+
+// Update status view based on selected value
+function updateStatusView(select) {
+    const status = select.value;
+    const printButton = document.getElementById(`print-${select.dataset.id}`);
+
+    // Reset kelas warna
+    select.classList.remove('status-pending', 'status-approved', 'status-rejected');
+
+    if (status === 'pending') {
+        select.classList.add('status-pending');
+        if (printButton) printButton.classList.add('hidden');
+    } else if (status === 'approved') {
+        select.classList.add('status-approved');
+        if (printButton) printButton.classList.remove('hidden');
+    } else if (status === 'rejected') {
+        select.classList.add('status-rejected');
+        if (printButton) printButton.classList.add('hidden');
+    }
+}
+
+// Handle status change
+function handleStatusChange(selectElement) {
+    const requestId = selectElement.dataset.id.replace('sp-', '');
+    const newStatus = selectElement.value;
+
+    // Send AJAX request to update status
+    fetch(window.baseUrl + '/api/admin/requests/' + requestId + '/status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'status=' + newStatus + '&csrf_token=' + document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Status berhasil diperbarui', 'success');
+            // Update the print button visibility
+            updateStatusView(selectElement);
+        } else {
+            showNotification(data.message || 'Gagal memperbarui status', 'error');
+            // Revert the selection
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Terjadi kesalahan saat memperbarui status', 'error');
+        location.reload();
+    });
+}
+
+// Setup modal handlers
+function setupModalHandlers() {
+    const btnTambahSurat = document.getElementById('btn-tambah-surat');
+    const formModal = document.getElementById('form-modal');
+    const closeFormModalBtn = document.getElementById('close-form-modal');
+    const deleteModal = document.getElementById('delete-modal');
+    const modalConfirmBtn = document.getElementById('modal-confirm');
+    const modalCancelBtn = document.getElementById('modal-cancel');
+
+    let itemToDeleteId = null;
+
+    // Show form modal
+    if (btnTambahSurat) {
+        btnTambahSurat.addEventListener('click', function() {
+            formModal.classList.remove('hidden');
+        });
+    }
+
+    // Hide form modal
+    if (closeFormModalBtn) {
+        closeFormModalBtn.addEventListener('click', function() {
+            formModal.classList.add('hidden');
+            document.getElementById('surat-pengantar-form').reset();
+        });
+    }
+
+    // Hide delete modal
+    if (modalCancelBtn) {
+        modalCancelBtn.addEventListener('click', function() {
+            deleteModal.classList.add('hidden');
+            itemToDeleteId = null;
+        });
+    }
+
+    // Handle delete confirmation
+    if (modalConfirmBtn) {
+        modalConfirmBtn.addEventListener('click', function() {
+            if (itemToDeleteId) {
+                // Submit the delete form
+                const deleteForm = document.querySelector(`form[action*="${itemToDeleteId}/delete"]`);
+                if (deleteForm) {
+                    deleteForm.submit();
+                }
+            }
+            deleteModal.classList.add('hidden');
+        });
+    }
+
+    // Setup delete buttons
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            itemToDeleteId = this.dataset.id;
+            const row = this.closest('tr');
+            const pemohonName = row.querySelector('[data-name]').dataset.name;
+
+            document.getElementById('modal-item-name').textContent = `Permohonan atas nama: ${pemohonName}`;
+            deleteModal.classList.remove('hidden');
+        });
+    });
+}
+
+// Setup form handlers
+function setupFormHandlers() {
+    const form = document.getElementById('surat-pengantar-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+            submitBtn.disabled = true;
+
+            // Send form data
+            fetch(window.baseUrl + '/requests/create', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Permohonan surat berhasil dibuat!', 'success');
+                    document.getElementById('form-modal').classList.add('hidden');
+                    form.reset();
+                    // Reload page to show new data
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showNotification(data.message || 'Gagal membuat permohonan', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Terjadi kesalahan saat membuat permohonan', 'error');
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    }
+}
+
+// Confirm delete function (for form onsubmit)
+function confirmDelete(name) {
+    if (typeof Swal !== 'undefined') {
+        return new Promise((resolve) => {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Hapus Permohonan?',
+                text: `Yakin ingin menghapus permohonan surat atas nama ${name}?`,
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                resolve(result.isConfirmed);
+            });
+        });
+    } else {
+        return confirm(`Yakin ingin menghapus permohonan surat atas nama ${name}?`);
+    }
+}
+
+// Print function
+function printSurat(requestId) {
+    window.open(window.baseUrl + '/admin/requests/' + requestId + '/download', '_blank');
+}
+
+// Edit function
+function editSurat(requestId) {
+    showNotification('Fitur edit akan segera hadir', 'info');
+}
+
+// Edit function
+function editSurat(requestId) {
+    showNotification('Fitur edit akan segera hadir', 'info');
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    if (typeof Swal !== 'undefined') {
+        const title = type === 'success' ? 'Berhasil' :
+                     type === 'error' ? 'Error' :
+                     type === 'warning' ? 'Peringatan' : 'Info';
+
+        Swal.fire({
+            icon: type,
+            title: title,
+            text: message,
+            confirmButtonColor: '#0b79d0'
+        });
+    } else {
+        // Fallback alert
+        alert(message);
+    }
+}
+
+// Initialize global variables
+window.baseUrl = '<?php echo BASE_URL; ?>';
+
+// Add CSRF token meta tag if not exists
+if (!document.querySelector('meta[name="csrf-token"]')) {
+    const meta = document.createElement('meta');
+    meta.name = 'csrf-token';
+    meta.content = '<?php echo generateCSRFToken(); ?>';
+    document.head.appendChild(meta);
+}
+
+// Add SweetAlert2 CDN if not already loaded
+if (typeof Swal === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+    script.onload = function() {
+        console.log('SweetAlert2 loaded');
+    };
+    document.head.appendChild(script);
+}

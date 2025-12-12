@@ -1,0 +1,322 @@
+#!/bin/bash
+
+# ABIS Database Backup Script
+
+set -e
+
+echo "💾 ABIS - Database Backup"
+echo "========================"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+print_status() {
+    echo -e "${BLUE}[BACKUP]${NC} $1"
+}
+
+print_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Configuration
+BACKUP_DIR="backups/$(date +%Y%m%d_%H%M%S)"
+DB_HOST="localhost"
+DB_NAME="abis_desa_digital"
+DB_USER="root"
+DB_PASS=""
+
+# Load environment variables if .env exists
+if [ -f ".env" ]; then
+    # Simple .env parser (basic implementation)
+    while IFS='=' read -r key value; do
+        # Skip comments and empty lines
+        [[ $key =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$key" ]] && continue
+
+        # Remove quotes and spaces
+        value=$(echo "$value" | sed 's/["'\'']//g' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+
+        # Export variable
+        export "$key=$value"
+    done < .env
+fi
+
+# Override with actual values
+DB_HOST="${DB_HOST:-localhost}"
+DB_NAME="${DB_NAME:-abis_desa_digital}"
+DB_USER="${DB_USER:-root}"
+DB_PASS="${DB_PASS:-}"
+
+# Create backup directory
+create_backup_dir() {
+    print_status "Creating backup directory..."
+
+    mkdir -p "$BACKUP_DIR"
+
+    if [ $? -eq 0 ]; then
+        print_success "Backup directory created: $BACKUP_DIR"
+    else
+        print_error "Failed to create backup directory"
+        exit 1
+    fi
+}
+
+# Backup database
+backup_database() {
+    print_status "Backing up database: $DB_NAME"
+
+    local backup_file="$BACKUP_DIR/database.sql"
+
+    # Test connection first
+    if ! mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -e "SELECT 1;" > /dev/null 2>&1; then
+        print_error "Cannot connect to MySQL database"
+        exit 1
+    fi
+
+    # Create backup
+    mysqldump \
+        --host="$DB_HOST" \
+        --user="$DB_USER" \
+        --password="$DB_PASS" \
+        --databases "$DB_NAME" \
+        --single-transaction \
+        --routines \
+        --triggers \
+        --add-drop-database \
+        --add-drop-table \
+        > "$backup_file"
+
+    if [ $? -eq 0 ]; then
+        local size=$(stat -f%z "$backup_file" 2>/dev/null || stat -c%s "$backup_file" 2>/dev/null || echo "0")
+        print_success "Database backup created: $backup_file (${size} bytes)"
+    else
+        print_error "Database backup failed"
+        exit 1
+    fi
+}
+
+# Backup uploaded files
+backup_uploads() {
+    print_status "Backing up uploaded files..."
+
+    if [ -d "public/uploads" ] && [ "$(ls -A public/uploads 2>/dev/null)" ]; then
+        cp -r public/uploads "$BACKUP_DIR/"
+        local count=$(find "$BACKUP_DIR/uploads" -type f | wc -l)
+        print_success "Uploaded files backed up: $count files"
+    else
+        print_warning "No uploaded files to backup"
+    fi
+}
+
+# Backup configuration files
+backup_config() {
+    print_status "Backing up configuration files..."
+
+    local config_files=(".env" "config/*.php" "tailwind.config.js")
+
+    for file in $config_files; do
+        if [ -f "$file" ]; then
+            cp "$file" "$BACKUP_DIR/"
+            print_success "Configuration backed up: $file"
+        fi
+    done
+}
+
+# Compress backup
+compress_backup() {
+    print_status "Compressing backup..."
+
+    local archive_name="abis_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
+
+    cd backups
+    tar -czf "$archive_name" "$(basename "$BACKUP_DIR")"
+
+    if [ $? -eq 0 ]; then
+        local size=$(stat -f%z "$archive_name" 2>/dev/null || stat -c%s "$archive_name" 2>/dev/null || echo "0")
+        print_success "Backup compressed: $archive_name (${size} bytes)"
+
+        # Remove uncompressed directory
+        rm -rf "$(basename "$BACKUP_DIR")"
+        print_success "Cleanup completed"
+    else
+        print_error "Compression failed"
+        exit 1
+    fi
+
+    cd ..
+}
+
+# Generate backup report
+generate_report() {
+    local report_file="$BACKUP_DIR/backup_report.txt"
+
+    # Get database info
+    local tables_count=$(mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "SHOW TABLES;" 2>/dev/null | wc -l)
+    tables_count=$((tables_count - 1)) # Subtract header
+
+    local users_count=$(mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "SELECT COUNT(*) FROM users;" 2>/dev/null | tail -n1)
+
+    cat > "$report_file" << EOF
+ABIS Database Backup Report
+==========================
+
+Backup Date: $(date)
+Backup Directory: $BACKUP_DIR
+Database: $DB_NAME
+Host: $DB_HOST
+
+Database Statistics:
+- Tables: $tables_count
+- Users: $users_count
+
+Backup Contents:
+- Database schema and data
+- Uploaded files (if any)
+- Configuration files
+
+Restore Instructions:
+1. Extract backup archive
+2. Import database: mysql -u root -p < database.sql
+3. Copy uploads folder to public/uploads/
+4. Update configuration files as needed
+
+Important Notes:
+- Test backup restoration before relying on it
+- Store backups in secure location
+- Consider encrypting sensitive backups
+- Regular backup schedule recommended
+
+Generated by: ABIS Backup Script v1.0
+EOF
+
+    print_success "Backup report generated: $report_file"
+}
+
+# Cleanup old backups
+cleanup_old_backups() {
+    print_status "Cleaning up old backups..."
+
+    local max_backups=10
+
+    # Count backup archives
+    local backup_count=$(ls -1 backups/*.tar.gz 2>/dev/null | wc -l)
+
+    if [ "$backup_count" -gt "$max_backups" ]; then
+        print_warning "Found $backup_count backups, keeping only $max_backups"
+
+        # Remove oldest backups
+        ls -1t backups/*.tar.gz | tail -n +$((max_backups + 1)) | xargs rm -f
+
+        print_success "Old backups cleaned up"
+    else
+        print_success "Backup count OK ($backup_count)"
+    fi
+}
+
+# Main backup function
+main() {
+    echo ""
+
+    create_backup_dir
+    echo ""
+
+    backup_database
+    echo ""
+
+    backup_uploads
+    echo ""
+
+    backup_config
+    echo ""
+
+    generate_report
+    echo ""
+
+    compress_backup
+    echo ""
+
+    cleanup_old_backups
+    echo ""
+
+    print_success "🎉 Database backup completed successfully!"
+    echo ""
+    echo "📋 Backup Summary:"
+    echo "   📁 Location: backups/"
+    echo "   📄 Report: View backup_report.txt in backup archive"
+    echo "   💾 Size: $(ls -lh backups/*.tar.gz | tail -n1 | awk '{print $5}')"
+    echo ""
+    echo "🔄 Restore command:"
+    echo "   tar -xzf backups/abis_backup_*.tar.gz -C /tmp/"
+    echo "   mysql -u root -p $DB_NAME < /tmp/$(basename "$BACKUP_DIR")/database.sql"
+    echo ""
+    echo "⚠️  Important:"
+    echo "   - Test restoration procedure regularly"
+    echo "   - Store backups offsite for disaster recovery"
+    echo "   - Consider encrypting sensitive data"
+}
+
+# Show usage
+show_usage() {
+    echo "ABIS Database Backup Script"
+    echo ""
+    echo "Usage: $0 [options]"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help     Show this help message"
+    echo "  -d, --database Specify database name"
+    echo "  -u, --user     Specify database user"
+    echo "  -p, --password Specify database password"
+    echo "  -H, --host     Specify database host"
+    echo ""
+    echo "Environment variables (.env file):"
+    echo "  DB_HOST        Database host"
+    echo "  DB_NAME        Database name"
+    echo "  DB_USER        Database user"
+    echo "  DB_PASS        Database password"
+    echo ""
+    echo "Examples:"
+    echo "  $0"
+    echo "  $0 -d my_database -u my_user -p my_password"
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            show_usage
+            exit 0
+            ;;
+        -d|--database)
+            DB_NAME="$2"
+            shift 2
+            ;;
+        -u|--user)
+            DB_USER="$2"
+            shift 2
+            ;;
+        -p|--password)
+            DB_PASS="$2"
+            shift 2
+            ;;
+        -H|--host)
+            DB_HOST="$2"
+            shift 2
+            ;;
+        *)
+            print_error "Unknown option: $1"
+            show_usage
+            exit 1
+            ;;
+    esac
+done
+
+# Run main backup
+main
