@@ -5,40 +5,57 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dompdf\Dompdf;
 
-// 1️⃣ ambil jenis surat
-$jenis = $_GET['jenis'] ?? 'keterangan_domisili';
+/**
+ * MODE PREVIEW (DEFAULT)
+ */
+$mode = 'preview';
 
-// 2️⃣ data dummy (sementara)
+/**
+ * JENIS SURAT
+ */
+$jenis = $_POST['jenis'] ?? 'keterangan_domisili';
+
+/**
+ * DATA DARI FORM
+ */
 $data = [
-    'nama'       => $_GET['nama'] ?? '',
-    'nik'        => $_GET['nik'] ?? '',
-    'alamat'     => $_GET['alamat'] ?? '',
-    'keperluan'  => $_GET['keperluan'] ?? '',
-    'desa'       => 'Suka Maju'
+    'nama'        => $_POST['nama'] ?? '',
+    'nik'         => $_POST['nik'] ?? '',
+    'alamat'      => $_POST['alamat'] ?? '',
+    'keperluan'   => $_POST['keperluan'] ?? '',
+    'sekolah'     => $_POST['sekolah'] ?? '',
+    'desa'        => 'Suka Maju',
+    'kepala_desa' => 'Budi Santoso'
 ];
 
-
-// extract supaya $nama tersedia
 extract($data);
 
-// 3️⃣ generate nomor surat
+/**
+ * GENERATE NOMOR SURAT
+ */
 $nomor_surat = generateNomorSurat($jenis);
 
-// 4️⃣ SIMPAN KE DATABASE (INI DIA)
+/**
+ * SIMPAN KE DATABASE (PENDING)
+ */
 insert('surat_log', [
     'nomor_surat' => $nomor_surat,
     'jenis_surat' => $jenis,
     'nama'        => $nama,
-    'tanggal'     => date('Y-m-d')
+    'tanggal'     => date('Y-m-d'),
+    'status'      => 'pending'
 ]);
 
-// 5️⃣ render PDF
+/**
+ * RENDER PDF (TANPA TTD)
+ */
 ob_start();
 require "../views/surat/$jenis.php";
+require "../views/surat/penutup.php";
 $html = ob_get_clean();
 
 $pdf = new Dompdf();
 $pdf->loadHtml($html);
 $pdf->setPaper('A4', 'portrait');
 $pdf->render();
-$pdf->stream($jenis . ".pdf", ["Attachment" => false]);
+$pdf->stream("PREVIEW_$jenis.pdf", ["Attachment" => false]);

@@ -70,6 +70,16 @@ CREATE TABLE settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Surat log table
+CREATE TABLE surat_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nomor_surat VARCHAR(100) NOT NULL,
+    jenis_surat VARCHAR(50) NOT NULL,
+    nama VARCHAR(100) NOT NULL,
+    tanggal DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Insert default admin user
 INSERT INTO users (username, email, password, full_name, role) VALUES
 ('admin', 'admin@abisdesa.id', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'admin');

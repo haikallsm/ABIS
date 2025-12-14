@@ -1,11 +1,7 @@
-<br><br>
-<table>
-<tr>
-<td width="60%"></td>
-<td>
-<?= $desa ?>, <?= date('d F Y') ?><br>
-Kepala Desa <?= $desa ?><br><br><br><br>
-<b><?= $kepala_desa ?></b>
-</td>
-</tr>
-</table>
+<?php if (($mode ?? 'preview') === 'final'): ?>
+    <br><br>
+    <div style="text-align:right;">
+        Kepala Desa <?= htmlspecialchars($desa) ?><br><br><br>
+        <strong><?= htmlspecialchars($kepala_desa) ?></strong>
+    </div>
+<?php endif; ?>
