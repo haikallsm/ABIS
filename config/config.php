@@ -5,7 +5,10 @@
  *
  * This file loads all configuration files
  */
-
+// Tambahkan blok ini di paling atas
+if (!defined('ENVIRONMENT')) {
+    define('ENVIRONMENT', 'development');
+}
 // Load constants
 require_once __DIR__ . '/constants.php';
 

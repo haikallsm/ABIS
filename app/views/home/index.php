@@ -370,7 +370,7 @@ $extra_js = ['homepage.js'];
                         <?php foreach ($letter_types as $type): ?>
                         <tr class="table-row">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-natural"><?php echo htmlspecialchars($type['name']); ?></td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-natural-light">1-3 Hari Kerja</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-natural-light">1-2 Hari Kerja</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-natural-light">Gratis</td>
                             <td class="px-6 py-4 text-sm text-natural-light"><?php echo htmlspecialchars($type['description'] ?? 'Dokumen lengkap'); ?></td>
                         </tr>

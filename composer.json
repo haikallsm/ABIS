@@ -1,0 +1,9 @@
+{
+    "name": "pandu/abis",
+    "description": "Aplikasi Desa Digital ABIS",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "dompdf/dompdf": "^3.1"
+    }
+}
