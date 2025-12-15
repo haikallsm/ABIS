@@ -2,7 +2,7 @@
 // Set page metadata
 $title = 'Pengajuan Surat';
 $extra_css = ['admin-dashboard.css'];
-$extra_js = ['admin-dashboard'];
+$extra_js = ['admin-requests'];
 ?>
 
 <body class="cream-bg antialiased">

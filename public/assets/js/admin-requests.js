@@ -371,21 +371,41 @@ function downloadPDF(requestId) {
 
 // Notification system
 function showNotification(message, type = 'info') {
-    if (typeof Swal !== 'undefined') {
-        const title = type === 'success' ? 'Berhasil' :
-                     type === 'error' ? 'Error' :
-                     type === 'warning' ? 'Peringatan' : 'Info';
-
-        Swal.fire({
-            icon: type,
-            title: title,
-            text: message,
-            confirmButtonColor: '#0b79d0'
-        });
+    // Wait for SweetAlert2 to load if it's being loaded
+    if (typeof Swal === 'undefined') {
+        // Check if we're currently loading it
+        const existingScript = document.querySelector('script[src*="sweetalert2"]');
+        if (!existingScript) {
+            // Load SweetAlert2 synchronously
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+            script.onload = function() {
+                showSwalNotification(message, type);
+            };
+            script.onerror = function() {
+                alert(message); // Fallback
+            };
+            document.head.appendChild(script);
+        } else {
+            // Wait a bit and try again
+            setTimeout(() => showNotification(message, type), 100);
+        }
     } else {
-        // Fallback alert
-        alert(message);
+        showSwalNotification(message, type);
     }
+}
+
+function showSwalNotification(message, type) {
+    const title = type === 'success' ? 'Berhasil' :
+                 type === 'error' ? 'Error' :
+                 type === 'warning' ? 'Peringatan' : 'Info';
+
+    Swal.fire({
+        icon: type,
+        title: title,
+        text: message,
+        confirmButtonColor: '#0b79d0'
+    });
 }
 
 // Initialize global variables
@@ -399,12 +419,4 @@ if (!document.querySelector('meta[name="csrf-token"]')) {
     document.head.appendChild(meta);
 }
 
-// Add SweetAlert2 CDN if not already loaded
-if (typeof Swal === 'undefined') {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
-    script.onload = function() {
-        console.log('SweetAlert2 loaded');
-    };
-    document.head.appendChild(script);
-}
+// SweetAlert2 loading is now handled by showNotification function

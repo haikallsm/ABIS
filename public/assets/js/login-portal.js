@@ -41,7 +41,34 @@ document.addEventListener('DOMContentLoaded', function() {
         loginUsername.focus();
     }
 
-    // Form submit event handlers - let forms submit naturally
+    // Form submit event handlers
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            if (!validateAuthForm('loginForm')) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Show loading before form submits
+            showLoading();
+            showNotification('Memproses login...', 'info');
+        });
+    }
+
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            if (!validateAuthForm('registerForm')) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Show loading before form submits
+            showLoading();
+            showNotification('Memproses registrasi...', 'info');
+        });
+    }
 });
 
 // Toggle password visibility
@@ -211,29 +238,7 @@ function validateAuthForm(formId) {
     return false;
 }
 
-// Form submit event handlers
-document.getElementById('loginForm').addEventListener('submit', function(e) {
-    if (!validateAuthForm('loginForm')) {
-        e.preventDefault();
-        return false;
-    }
-
-    // Show loading before form submits
-    showLoading();
-    showNotification('Memproses login...', 'info');
-});
-
-document.getElementById('registerForm').addEventListener('submit', function(e) {
-    if (!validateAuthForm('registerForm')) {
-        e.preventDefault();
-        return false;
-    }
-
-    // Show loading before form submits
-    showLoading();
-    showNotification('Memproses pendaftaran...', 'info');
-    // Let the form submit naturally to backend
-});
+// Form submit event handlers are now inside DOMContentLoaded blocks
 
 // Close flash message
 function closeFlashMessage() {
