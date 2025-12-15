@@ -151,6 +151,18 @@ $router->add('GET', '/dashboard', function() {
     $userController->dashboard();
 });
 
+$router->add('GET', '/profile', function() {
+    global $userController;
+    requireAuth('user');
+    $userController->profile();
+});
+
+$router->add('POST', '/profile', function() {
+    global $userController;
+    requireAuth('user');
+    $userController->updateProfile();
+});
+
 $router->add('GET', '/requests', function() {
     global $userController;
     requireAuth('user');
@@ -302,10 +314,43 @@ $router->add('POST', '/admin/requests/:id/reject', function($params) {
     $adminController->rejectRequest($params['id']);
 });
 
-$router->add('GET', '/admin/requests/:id/download', function($params) {
+// Letter requests management (approve/reject)
+$router->add('GET', '/admin/letter-requests', function() {
     global $adminController;
     requireAuth('admin');
-    $adminController->downloadRequest($params['id']);
+    $adminController->letterRequests();
+});
+
+// Letter types management
+$router->add('GET', '/admin/letter-types', function() {
+    global $adminController;
+    requireAuth('admin');
+    $adminController->letterTypes();
+});
+
+$router->add('POST', '/admin/letter-types', function() {
+    global $adminController;
+    requireAuth('admin');
+    $adminController->createLetterType();
+});
+
+$router->add('POST', '/admin/letter-types/:id', function($params) {
+    global $adminController;
+    requireAuth('admin');
+    $adminController->updateLetterType($params['id']);
+});
+
+$router->add('POST', '/admin/letter-types/:id/toggle', function($params) {
+    global $adminController;
+    requireAuth('admin');
+    $adminController->toggleLetterTypeStatus($params['id']);
+});
+
+// Export Excel route
+$router->add('GET', '/admin/export/excel', function() {
+    global $adminController;
+    requireAuth('admin');
+    $adminController->exportExcel();
 });
 
 // API routes for AJAX requests

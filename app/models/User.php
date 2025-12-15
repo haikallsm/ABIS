@@ -14,7 +14,7 @@ class User {
      */
     public function findById($id) {
         return fetchOne(
-            "SELECT id, username, email, full_name, role, phone, address, created_at, updated_at, is_active
+            "SELECT id, username, email, password, full_name, nik, birth_place, birth_date, gender, phone, address, occupation, religion, marital_status, role, created_at, updated_at, is_active
              FROM {$this->table}
              WHERE id = ? AND is_active = 1",
             [$id]
@@ -31,7 +31,7 @@ class User {
         if (is_numeric($username) && strlen($username) === 16) {
             // Search by NIK
             return fetchOne(
-                "SELECT id, username, email, password, full_name, nik, role, phone, address, created_at, updated_at, is_active
+                "SELECT id, username, email, password, full_name, nik, birth_place, birth_date, gender, phone, address, occupation, religion, marital_status, role, created_at, updated_at, is_active
                  FROM {$this->table}
                  WHERE nik = ? AND is_active = 1",
                 [$username]
@@ -39,7 +39,7 @@ class User {
         } else {
             // Search by username
             return fetchOne(
-                "SELECT id, username, email, password, full_name, nik, role, phone, address, created_at, updated_at, is_active
+                "SELECT id, username, email, password, full_name, nik, birth_place, birth_date, gender, phone, address, occupation, religion, marital_status, role, created_at, updated_at, is_active
                  FROM {$this->table}
                  WHERE username = ? AND is_active = 1",
                 [$username]
@@ -116,6 +116,40 @@ class User {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             return $this->update($id, ['password' => $hashedPassword]);
         } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Update user profile with additional fields
+     * @param int $userId
+     * @param array $data
+     * @return bool
+     */
+    public function updateProfile($userId, $data) {
+        try {
+            // Filter out empty values and prepare data
+            $updateData = [];
+            $allowedFields = [
+                'nik', 'full_name', 'birth_place', 'birth_date', 'gender',
+                'address', 'phone', 'email', 'occupation', 'religion', 'marital_status'
+            ];
+
+            foreach ($allowedFields as $field) {
+                if (isset($data[$field]) && $data[$field] !== '') {
+                    $updateData[$field] = $data[$field];
+                }
+            }
+
+            if (empty($updateData)) {
+                return false; // Nothing to update
+            }
+
+            $updateData['updated_at'] = date(DATETIME_FORMAT);
+
+            return update($this->table, $updateData, 'id = ?', ['id' => $userId]) > 0;
+        } catch (Exception $e) {
+            error_log('Error updating profile: ' . $e->getMessage());
             return false;
         }
     }

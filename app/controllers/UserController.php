@@ -288,4 +288,70 @@ class UserController {
         // Include layout
         require VIEWS_DIR . '/layouts/user.php';
     }
+
+    /**
+     * Show user profile
+     */
+    public function profile() {
+        requireAuth('user');
+
+        $userId = getCurrentUserId();
+        $user = $this->userModel->findById($userId);
+
+        if (!$user) {
+            $_SESSION['error'] = 'User tidak ditemukan.';
+            header('Location: ' . BASE_URL . '/user/dashboard');
+            exit;
+        }
+
+        // Pass user data to view
+        $this->renderView('user/profile', compact('user'));
+    }
+
+    /**
+     * Update user profile
+     */
+    public function updateProfile() {
+        requireAuth('user');
+
+        $userId = getCurrentUserId();
+
+        $data = [
+            'nik' => $_POST['nik'] ?? '',
+            'full_name' => $_POST['full_name'] ?? '',
+            'birth_place' => $_POST['birth_place'] ?? '',
+            'birth_date' => $_POST['birth_date'] ?? '',
+            'gender' => $_POST['gender'] ?? '',
+            'address' => $_POST['address'] ?? '',
+            'phone' => $_POST['phone'] ?? '',
+            'email' => $_POST['email'] ?? '',
+            'occupation' => $_POST['occupation'] ?? '',
+            'religion' => $_POST['religion'] ?? '',
+            'marital_status' => $_POST['marital_status'] ?? ''
+        ];
+
+        // Validation
+        if (empty($data['nik']) || empty($data['full_name'])) {
+            $_SESSION['error'] = 'NIK dan Nama Lengkap harus diisi.';
+            header('Location: ' . BASE_URL . '/user/profile');
+            exit;
+        }
+
+        if (!is_numeric($data['nik']) || strlen($data['nik']) !== 16) {
+            $_SESSION['error'] = 'NIK harus berupa 16 digit angka.';
+            header('Location: ' . BASE_URL . '/user/profile');
+            exit;
+        }
+
+        $result = $this->userModel->updateProfile($userId, $data);
+
+        if ($result) {
+            $_SESSION['success'] = 'Profile berhasil diperbarui.';
+        } else {
+            $_SESSION['error'] = 'Gagal memperbarui profile.';
+        }
+
+        header('Location: ' . BASE_URL . '/user/profile');
+        exit;
+    }
 }

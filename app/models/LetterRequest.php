@@ -123,6 +123,72 @@ class LetterRequest {
     }
 
     /**
+     * Get all requests for export (without pagination)
+     * @param array $filters
+     * @return array
+     */
+    public function getAllForExport($filters = []) {
+        $whereClause = "1=1";
+        $params = [];
+
+        // Date filters
+        if (!empty($filters['dari_tanggal'])) {
+            $whereClause .= " AND DATE(lr.created_at) >= ?";
+            $params[] = $filters['dari_tanggal'];
+        }
+
+        if (!empty($filters['sampai_tanggal'])) {
+            $whereClause .= " AND DATE(lr.created_at) <= ?";
+            $params[] = $filters['sampai_tanggal'];
+        }
+
+        // Letter type filters
+        $typeConditions = [];
+        if (!empty($filters['jenis_keterangan'])) {
+            $typeConditions[] = "lt.code LIKE 'SK%'";
+        }
+        if (!empty($filters['jenis_pengantar'])) {
+            $typeConditions[] = "lt.code LIKE 'SP%'";
+        }
+        if (!empty($filters['jenis_lainnya'])) {
+            $typeConditions[] = "lt.code NOT LIKE 'SK%' AND lt.code NOT LIKE 'SP%'";
+        }
+
+        if (!empty($typeConditions)) {
+            $whereClause .= " AND (" . implode(" OR ", $typeConditions) . ")";
+        }
+
+        $requests = fetchAll(
+            "SELECT lr.*, lt.name as letter_type_name, lt.code as letter_type_code,
+                    u.username, u.full_name, u.nik, u.email as user_email,
+                    ua.full_name as approved_by_name, ur.full_name as rejected_by_name
+             FROM {$this->table} lr
+             LEFT JOIN letter_types lt ON lr.letter_type_id = lt.id
+             LEFT JOIN users u ON lr.user_id = u.id
+             LEFT JOIN users ua ON lr.approved_by = ua.id
+             LEFT JOIN users ur ON lr.rejected_by = ur.id
+             WHERE {$whereClause}
+             ORDER BY lr.created_at DESC",
+            $params
+        );
+
+        return $requests;
+    }
+
+    /**
+     * Get count by status
+     * @param string $status
+     * @return int
+     */
+    public function getCountByStatus($status) {
+        $result = fetchValue(
+            "SELECT COUNT(*) FROM {$this->table} WHERE status = ?",
+            [$status]
+        );
+        return $result ?? 0;
+    }
+
+    /**
      * Create new request
      * @param array $data
      * @return int|false

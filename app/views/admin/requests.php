@@ -58,7 +58,7 @@ $extra_js = ['admin-export.js'];
                         <span>Jenis Surat</span>
                     </a>
 
-                    <a href="<?php echo BASE_URL; ?>/admin/requests" class="sidebar-link flex items-center py-4">
+                    <a href="<?php echo BASE_URL; ?>/admin/letter-requests" class="sidebar-link flex items-center py-4">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2m-6 0h6"></path>
                         </svg>
@@ -269,12 +269,6 @@ $extra_js = ['admin-export.js'];
                             </svg>
                             Export Excel
                         </button>
-                        <button id="btn-export-pdf" class="px-6 py-3 bg-linear-to-r from-accent to-highlight text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                            </svg>
-                            Export PDF
-                        </button>
                     </div>
                 </div>
 
@@ -349,5 +343,45 @@ document.addEventListener('DOMContentLoaded', function() {
     if (localStorage.getItem('sidebar-collapsed') === 'true') {
         document.getElementById('appLayout').classList.add('sidebar-collapsed');
     }
+
+    // Set default dates
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dari_tanggal').value = today;
+    document.getElementById('sampai_tanggal').value = today;
+
+    // Handle export buttons
+    document.getElementById('btn-export-excel').addEventListener('click', function(e) {
+        e.preventDefault();
+        exportToExcel();
+    });
+
 });
+
+function exportToExcel() {
+    // Get filter values
+    const dariTanggal = document.getElementById('dari_tanggal').value;
+    const sampaiTanggal = document.getElementById('sampai_tanggal').value;
+    const jenisKeterangan = document.getElementById('jenis_keterangan').checked;
+    const jenisPengantar = document.getElementById('jenis_pengantar').checked;
+    const jenisLainnya = document.getElementById('jenis_lainnya').checked;
+
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (dariTanggal) params.append('dari_tanggal', dariTanggal);
+    if (sampaiTanggal) params.append('sampai_tanggal', sampaiTanggal);
+    if (jenisKeterangan) params.append('jenis_keterangan', '1');
+    if (jenisPengantar) params.append('jenis_pengantar', '1');
+    if (jenisLainnya) params.append('jenis_lainnya', '1');
+
+    // Create download link
+    const url = `${BASE_URL}/admin/export/excel?${params.toString()}`;
+
+    // Create temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 </script>
