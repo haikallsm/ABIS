@@ -36,7 +36,7 @@
     <!-- Additional JavaScript -->
     <?php if (isset($extra_js)): ?>
         <?php foreach ($extra_js as $js): ?>
-            <script src="<?php echo ASSETS_URL; ?>/js/<?php echo $js; ?>"></script>
+            <script src="<?php echo ASSETS_URL; ?>/js/<?php echo $js; ?>.js"></script>
         <?php endforeach; ?>
     <?php endif; ?>
 

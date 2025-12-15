@@ -185,3 +185,4 @@ class PDFGenerator {
         return '0 B';
     }
 }
+

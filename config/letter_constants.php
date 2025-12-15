@@ -109,3 +109,4 @@ define('ERROR_PDF_GENERATION_FAILED', 'Gagal membuat file PDF');
 define('ERROR_FILE_NOT_FOUND', 'File PDF tidak ditemukan');
 define('ERROR_REQUEST_NOT_APPROVED', 'Surat hanya dapat didownload jika sudah disetujui');
 ?>
+

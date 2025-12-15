@@ -75,3 +75,4 @@ document.getElementById('requestForm').addEventListener('submit', function(e) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Create request page initialized');
 });
+

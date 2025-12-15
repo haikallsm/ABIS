@@ -13,7 +13,7 @@ define('APP_AUTHOR', 'ABIS Development Team');
 // Base URL (adjust according to your setup)
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
 
-// For web requests, use HTTP_HOST
+// For web requests, use HTTP_HOST (should include port if non-standard)
 if (isset($_SERVER['HTTP_HOST'])) {
     $host = $_SERVER['HTTP_HOST'];
 
@@ -43,8 +43,17 @@ if (isset($_SERVER['HTTP_HOST'])) {
         define('BASE_URL', $protocol . '://' . $host . $basePath);
     }
 } else {
-    // For command line or other environments, use default
-    define('BASE_URL', 'http://localhost');
+    // For command line or other environments, try to detect port from REQUEST_URI
+    if (isset($_SERVER['REQUEST_URI']) && preg_match('/^https?:\/\/([^\/]+)/', $_SERVER['REQUEST_URI'], $matches)) {
+        define('BASE_URL', $matches[0]);
+    } else {
+        // Fallback to localhost with common development ports
+        $possibleUrls = ['http://localhost:8000', 'http://localhost:8080', 'http://localhost'];
+        foreach ($possibleUrls as $url) {
+            // You can customize this based on your setup
+        }
+        define('BASE_URL', 'http://localhost:8000'); // Default for this project
+    }
 }
 define('ASSETS_URL', BASE_URL . '/public/assets');
 define('UPLOADS_URL', BASE_URL . '/public/uploads');

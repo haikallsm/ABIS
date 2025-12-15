@@ -109,13 +109,21 @@ function insert($table, $data) {
  */
 function update($table, $data, $where, $whereParams = []) {
     $setParts = [];
-    foreach (array_keys($data) as $column) {
-        $setParts[] = "{$column} = :{$column}";
+    $params = [];
+
+    // Build SET clause with positional parameters
+    foreach ($data as $column => $value) {
+        $setParts[] = "{$column} = ?";
+        $params[] = $value;
     }
     $setClause = implode(', ', $setParts);
 
+    // Add WHERE parameters (ensure indexed array)
+    if (is_array($whereParams)) {
+        $params = array_merge($params, array_values($whereParams));
+    }
+
     $sql = "UPDATE {$table} SET {$setClause} WHERE {$where}";
-    $params = array_merge($data, $whereParams);
 
     $stmt = executeQuery($sql, $params);
     return $stmt->rowCount();

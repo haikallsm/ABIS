@@ -56,18 +56,17 @@ class UserController {
         // Get request statistics for user
         $stats = $this->getUserStats($userId);
 
-        // Pass data to view
-        $title = 'Dashboard User';
-        $extra_css = ['user-sidebar.css', 'user-dashboard.css'];
-        $extra_js = ['user-navigation.js'];
-
-        // Load dashboard view
-        ob_start();
-        include VIEWS_DIR . '/user/dashboard.php';
-        $content = ob_get_clean();
-
-        // Load user layout
-        include VIEWS_DIR . '/layouts/user.php';
+        // Pass data to view using renderView method
+        $this->renderView('user/dashboard', [
+            'title' => 'Dashboard User',
+            'extra_css' => ['user-sidebar.css', 'user-dashboard.css'],
+            'extra_js' => ['user-navigation.js'],
+            'current_user' => $current_user,
+            'stats' => $stats,
+            'recent_requests' => $recent_requests,
+            'all_requests' => $all_requests,
+            'letter_types' => $letter_types
+        ]);
     }
 
     /**
@@ -90,11 +89,14 @@ class UserController {
         requireAuth('user');
 
         $userId = getCurrentUserId();
-        $requests = $this->requestModel->findByUserId($userId);
+        $result = $this->requestModel->findByUserId($userId);
 
         $this->renderView('user/requests', [
             'title' => 'Riwayat Permohonan - ' . APP_NAME,
-            'requests' => $requests
+            'requests' => $result['requests'],
+            'total' => $result['total'],
+            'pages' => $result['pages'],
+            'current_page' => $result['current_page']
         ]);
     }
 

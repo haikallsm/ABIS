@@ -124,6 +124,18 @@ class AdminController {
         // Get recent users
         $recent_users = $this->userModel->getAll(1, 5)['users'];
 
+        // Prepare data for view
+        $data = [
+            'stats' => $stats,
+            'recent_requests' => $recent_requests,
+            'recent_activities' => $recent_activities,
+            'pending_requests' => $pending_requests,
+            'recent_users' => $recent_users
+        ];
+
+        // Extract data to make variables available in view
+        extract($data);
+
         // Load dashboard view
         ob_start();
         include VIEWS_DIR . '/admin/dashboard.php';
@@ -210,6 +222,19 @@ class AdminController {
         if (!empty($search)) $filters['search'] = $search;
 
         $requests_data = $this->letterRequestModel->getAll($page, ITEMS_PER_PAGE, $filters);
+
+        // Prepare data for view
+        $data = [
+            'title' => 'Pengajuan Surat',
+            'extra_css' => ['admin-dashboard.css'],
+            'extra_js' => ['admin-dashboard.js'],
+            'requests_data' => $requests_data,
+            'status' => $status,
+            'search' => $search
+        ];
+
+        // Extract data to make variables available in view
+        extract($data);
 
         // Load view
         ob_start();

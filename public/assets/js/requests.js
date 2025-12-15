@@ -78,3 +78,4 @@ function openRequestModal(requestId) {
         // Load content via AJAX here
     }
 }
+

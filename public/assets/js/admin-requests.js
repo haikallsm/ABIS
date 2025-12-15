@@ -216,6 +216,159 @@ function editSurat(requestId) {
     showNotification('Fitur edit akan segera hadir', 'info');
 }
 
+// Approve request function
+function approveRequest(requestId, userName) {
+    if (confirm(`Apakah Anda yakin ingin menyetujui permohonan surat atas nama ${userName}?`)) {
+        // Show loading state and disable all buttons in this row
+        const button = event.target.closest('button');
+        const buttonContainer = button.closest('.flex');
+        const allButtons = buttonContainer.querySelectorAll('button');
+
+        // Disable all buttons
+        allButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+        });
+
+        const originalText = button.innerHTML;
+        button.innerHTML = '<svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...';
+        button.disabled = true;
+
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('notes', 'Disetujui oleh admin');
+
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (csrfToken) {
+            formData.append('csrf_token', csrfToken);
+        }
+
+        // Send AJAX request
+        fetch(`${window.baseUrl}/admin/requests/${requestId}/approve`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Permohonan berhasil disetujui!', 'success');
+                // Force reload page to show updated status (bypass cache)
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 1500);
+            } else {
+                showNotification('Gagal menyetujui permohonan: ' + (data.message || 'Unknown error'), 'error');
+
+                // Re-enable all buttons
+                allButtons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                });
+
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan saat memproses permohonan', 'error');
+
+            // Re-enable all buttons
+            allButtons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+}
+
+// Reject request function
+function rejectRequest(requestId, userName) {
+    const notes = prompt(`Masukkan alasan penolakan untuk permohonan surat atas nama ${userName}:`);
+
+    if (notes !== null && notes.trim() !== '') {
+        // Show loading state and disable all buttons in this row
+        const button = event.target.closest('button');
+        const buttonContainer = button.closest('.flex');
+        const allButtons = buttonContainer.querySelectorAll('button');
+
+        // Disable all buttons
+        allButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+        });
+
+        const originalText = button.innerHTML;
+        button.innerHTML = '<svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...';
+        button.disabled = true;
+
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('notes', notes.trim());
+
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (csrfToken) {
+            formData.append('csrf_token', csrfToken);
+        }
+
+        // Send AJAX request
+        fetch(`${window.baseUrl}/admin/requests/${requestId}/reject`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Permohonan berhasil ditolak!', 'success');
+                // Force reload page to show updated status (bypass cache)
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 1500);
+            } else {
+                showNotification('Gagal menolak permohonan: ' + (data.message || 'Unknown error'), 'error');
+
+                // Re-enable all buttons
+                allButtons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                });
+
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan saat memproses permohonan', 'error');
+
+            // Re-enable all buttons
+            allButtons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+}
+
+// Download PDF function
+function downloadPDF(requestId) {
+    window.open(`${window.baseUrl}/admin/requests/${requestId}/download`, '_blank');
+}
+
 // Notification system
 function showNotification(message, type = 'info') {
     if (typeof Swal !== 'undefined') {

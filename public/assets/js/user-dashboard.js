@@ -22,3 +22,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add any initialization code here if needed
     console.log('User dashboard initialized');
 });
+

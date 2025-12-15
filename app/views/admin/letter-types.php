@@ -2,7 +2,7 @@
 // Set page metadata
 $title = 'Jenis Surat';
 $extra_css = ['admin-dashboard.css'];
-$extra_js = ['admin-dashboard.js'];
+$extra_js = ['admin-dashboard'];
 ?>
 
 <body class="cream-bg antialiased">

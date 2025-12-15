@@ -261,3 +261,4 @@ function showNotification(message, type = 'info') {
         notification.remove();
     }, 3000);
 }
+

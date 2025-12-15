@@ -172,18 +172,30 @@ $extra_js = ['requests'];
                                             <span class="status-<?php
                                                 echo $request['status'] === 'approved' ? 'approved' :
                                                      ($request['status'] === 'pending' ? 'waiting' :
-                                                      ($request['status'] === 'rejected' ? 'pending' : 'approved')); ?>">
+                                                      ($request['status'] === 'rejected' ? 'rejected' :
+                                                       ($request['status'] === 'completed' ? 'completed' : 'waiting'))); ?>">
                                                 <?php
                                                 echo $request['status'] === 'approved' ? 'Disetujui' :
                                                      ($request['status'] === 'pending' ? 'Menunggu' :
-                                                      ($request['status'] === 'rejected' ? 'Ditolak' : 'Selesai')); ?>
+                                                      ($request['status'] === 'rejected' ? 'Ditolak' :
+                                                       ($request['status'] === 'completed' ? 'Selesai' : 'Menunggu'))); ?>
                                             </span>
                                         </td>
                                         <td class="px-5 py-4 border-b cream-border text-sm text-gray-500">
                                             <?php echo date('d M Y, H:i', strtotime($request['created_at'])); ?>
                                         </td>
                                         <td class="px-5 py-4 border-b cream-border text-sm text-gray-500">
-                                            <?php echo $request['completed_at'] ? date('d M Y, H:i', strtotime($request['completed_at'])) : '-'; ?>
+                                            <?php
+                                            $completionDate = null;
+                                            if ($request['status'] === 'approved' && $request['approved_at']) {
+                                                $completionDate = $request['approved_at'];
+                                            } elseif ($request['status'] === 'rejected' && $request['rejected_at']) {
+                                                $completionDate = $request['rejected_at'];
+                                            } elseif ($request['status'] === 'completed') {
+                                                $completionDate = $request['updated_at'];
+                                            }
+                                            echo $completionDate ? date('d M Y, H:i', strtotime($completionDate)) : '-';
+                                            ?>
                                         </td>
                                         <td class="px-5 py-4 border-b cream-border text-sm">
                                             <div class="flex items-center space-x-2">

@@ -361,6 +361,29 @@ $router->add('GET', '/api/letter-types', function() {
     echo json_encode($letterTypes);
 });
 
+$router->add('GET', '/api/letter-types/:id/fields', function($params) {
+    requireAuth();
+    header('Content-Type: application/json');
+
+    $letterTypeId = (int) $params['id'];
+    $letterTypeModel = new LetterType();
+
+    // Get required fields for this letter type
+    $requiredFields = $letterTypeModel->getRequiredFields($letterTypeId);
+
+    $fields = [];
+    foreach ($requiredFields as $name => $label) {
+        $fields[] = [
+            'name' => $name,
+            'label' => $label,
+            'required' => true,
+            'placeholder' => "Masukkan {$label}"
+        ];
+    }
+
+    echo json_encode(['fields' => $fields]);
+});
+
 // Get current request method and URI
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $requestUri = $_SERVER['REQUEST_URI'];

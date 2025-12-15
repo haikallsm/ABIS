@@ -2,7 +2,7 @@
 // Set page metadata
 $title = 'Export Data';
 $extra_css = ['admin-export.css'];
-$extra_js = ['admin-export.js'];
+$extra_js = ['admin-export'];
 ?>
 
 <body class="bg-gray-100 antialiased">

@@ -198,11 +198,14 @@ $extra_js = [];
                                             <td class="px-5 py-4 border-b cream-border text-sm">
                                                 <span class="status-<?php
                                                     echo $request['status'] === 'approved' ? 'approved' :
-                                                         ($request['status'] === 'pending' ? 'waiting' : 'pending'); ?>">
+                                                         ($request['status'] === 'pending' ? 'waiting' :
+                                                          ($request['status'] === 'rejected' ? 'rejected' :
+                                                           ($request['status'] === 'completed' ? 'completed' : 'waiting'))); ?>">
                                                     <?php
                                                     echo $request['status'] === 'approved' ? 'Disetujui' :
                                                          ($request['status'] === 'pending' ? 'Menunggu' :
-                                                          ($request['status'] === 'rejected' ? 'Ditolak' : 'Selesai')); ?>
+                                                          ($request['status'] === 'rejected' ? 'Ditolak' :
+                                                           ($request['status'] === 'completed' ? 'Selesai' : 'Menunggu'))); ?>
                                                 </span>
                                             </td>
                                             <td class="px-5 py-4 border-b cream-border text-sm text-gray-500">
