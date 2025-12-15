@@ -134,6 +134,11 @@ $router->add('POST', '/register', function() {
     $authController->processRegister();
 });
 
+$router->add('GET', '/logout', function() {
+    global $authController;
+    $authController->logout();
+});
+
 $router->add('POST', '/logout', function() {
     global $authController;
     $authController->logout();
@@ -144,6 +149,12 @@ $router->add('GET', '/dashboard', function() {
     global $userController;
     requireAuth('user');
     $userController->dashboard();
+});
+
+$router->add('GET', '/requests', function() {
+    global $userController;
+    requireAuth('user');
+    $userController->requests();
 });
 
 $router->add('GET', '/requests/create', function() {
@@ -193,6 +204,12 @@ $router->add('POST', '/admin/users/:id/delete', function($params) {
     global $adminController;
     requireAuth('admin');
     $adminController->deleteUser($params['id']);
+});
+
+$router->add('GET', '/admin/export', function() {
+    global $adminController;
+    requireAuth('admin');
+    $adminController->export();
 });
 
 $router->add('GET', '/admin/requests', function() {
@@ -303,10 +320,55 @@ $router->add('GET', '/api/letter-types', function() {
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $requestUri = $_SERVER['REQUEST_URI'];
 
+// Enhanced URI parsing for different web servers (Apache, Nginx, etc.)
+$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+$pathInfo = $_SERVER['PATH_INFO'] ?? '';
+$queryString = $_SERVER['QUERY_STRING'] ?? '';
+
+// Handle different server configurations
+if (!empty($pathInfo)) {
+    // For servers that set PATH_INFO (some CGI setups)
+    $requestUri = $pathInfo;
+} elseif (strpos($requestUri, $scriptName) === 0) {
+    // Remove script name from URI
+    $requestUri = substr($requestUri, strlen($scriptName));
+} else {
+    // For Nginx and other servers, extract path from REQUEST_URI
+    $parsedUrl = parse_url($requestUri);
+    $requestUri = $parsedUrl['path'] ?? '/';
+
+    // Remove base path if exists (for subdirectory installations)
+    $basePath = dirname($scriptName);
+    if ($basePath !== '/' && strpos($requestUri, $basePath) === 0) {
+        $requestUri = substr($requestUri, strlen($basePath));
+    }
+}
+
 // Remove query string from URI
 if (strpos($requestUri, '?') !== false) {
     $requestUri = substr($requestUri, 0, strpos($requestUri, '?'));
 }
 
+// Ensure we have a leading slash and no trailing slash except for root
+$requestUri = trim($requestUri, '/');
+if (empty($requestUri)) {
+    $requestUri = '/';
+} else {
+    $requestUri = '/' . $requestUri;
+}
+
+// Debug logging (uncomment for troubleshooting)
+// error_log("Final Request URI: $requestUri");
+// error_log("Original REQUEST_URI: " . $_SERVER['REQUEST_URI']);
+// error_log("Script Name: $scriptName");
+// error_log("Path Info: $pathInfo");
+
 // Dispatch the request
-$router->dispatch($requestMethod, $requestUri);
+try {
+    $router->dispatch($requestMethod, $requestUri);
+} catch (Exception $e) {
+    // If routing fails, show 404
+    http_response_code(404);
+    include VIEWS_DIR . '/errors/404.php';
+    exit;
+}

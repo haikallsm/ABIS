@@ -1,5 +1,45 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #4C7A5B;
+  --color-primary-light: #6A9C7A;
+  --color-secondary: #8FC0A9;
+  --color-accent: #E6B89C;
+  --color-highlight: #FF9A76;
+  --color-light: #FAF3E0;
+  --color-lightest: #FFFBF5;
+  --color-cream: #FFF9F0;
+  --color-cream-light: #FFFBF5;
+  --color-cream-dark: #F5E9D3;
+  --color-dark: #2D4A3A;
+  --color-sidebar: #2D4A3A;
+  --color-sidebar-light: #3A5D48;
+  --color-sidebar-dark: #1F3528;
+  --color-sidebar-text: #EAF7EE;
+  --color-border-green: #4C7A5B;
+  --color-border-teal: #8FC0A9;
+  --color-border-peach: #E6B89C;
+  --color-border-coral: #FF9A76;
+  --color-border-mint: #A8D5BA;
+  --color-border-sage: #6A9C7A;
+  --color-soft-green: #F0F7F2;
+  --color-soft-teal: #F0F7F4;
+  --color-soft-peach: #FDF5F0;
+  --color-soft-coral: #FFF5F0;
+  --color-soft-mint: #F0F7F3;
+  --color-soft-sage: #F0F7F2;
+  --color-border-soft-green: #D4E7DA;
+  --color-border-soft-teal: #D4E7E0;
+  --color-border-soft-peach: #F5E6DA;
+  --color-border-soft-coral: #FFE0D4;
+  --color-border-soft-mint: #D4E7DD;
+  --color-border-soft-sage: #D4E7DA;
+  --color-gradient-start: #2D4A3A;
+  --color-gradient-end: #4C7A5B;
+  --color-logout-red: #FF6B6B;
+  --color-logout-hover: #FF5252;
+}
+
 /* Custom base styles */
 @layer base {
   html {

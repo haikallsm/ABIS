@@ -127,8 +127,8 @@ class AdminController {
         include VIEWS_DIR . '/admin/dashboard.php';
         $content = ob_get_clean();
 
-        // Load layout without header/footer (custom layout for sidebar)
-        echo $content;
+        // Load admin layout with sidebar
+        include VIEWS_DIR . '/layouts/admin.php';
     }
 
     /**
@@ -137,17 +137,18 @@ class AdminController {
     public function users() {
         requireAuth('admin');
 
-        $page = $_GET['page'] ?? 1;
         $search = $_GET['search'] ?? '';
 
-        $users_data = $this->userModel->getAll($page, ITEMS_PER_PAGE, $search);
+        // Get all users without pagination for management
+        $users_data = $this->userModel->getAllUsers($search);
 
         // Load view
         ob_start();
         include VIEWS_DIR . '/admin/users.php';
         $content = ob_get_clean();
 
-        echo $content;
+        // Load admin layout
+        include VIEWS_DIR . '/layouts/admin.php';
     }
 
     /**
@@ -213,7 +214,8 @@ class AdminController {
         include VIEWS_DIR . '/admin/requests.php';
         $content = ob_get_clean();
 
-        echo $content;
+        // Load admin layout
+        include VIEWS_DIR . '/layouts/admin.php';
     }
 
     /**
@@ -386,5 +388,30 @@ class AdminController {
 
         readfile($filePath);
         exit;
+    }
+
+    /**
+     * Display export data page
+     */
+    public function export() {
+        $this->renderView('admin/export', [
+            'title' => 'Export Data - ' . APP_NAME
+        ]);
+    }
+
+    /**
+     * Render view with layout
+     */
+    private function renderView($view, $data = []) {
+        // Extract data to make variables available in view
+        extract($data);
+
+        // Start output buffering to capture view content
+        ob_start();
+        include VIEWS_DIR . '/' . $view . '.php';
+        $content = ob_get_clean();
+
+        // Include layout
+        require VIEWS_DIR . '/layouts/admin.php';
     }
 }

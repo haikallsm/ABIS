@@ -12,13 +12,40 @@ define('APP_AUTHOR', 'ABIS Development Team');
 
 // Base URL (adjust according to your setup)
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'];
-$scriptName = dirname($_SERVER['SCRIPT_NAME']);
 
-// Remove trailing slash from script name if it exists
-$scriptName = rtrim($scriptName, '/');
+// For web requests, use HTTP_HOST
+if (isset($_SERVER['HTTP_HOST'])) {
+    $host = $_SERVER['HTTP_HOST'];
 
-define('BASE_URL', $protocol . '://' . $host . $scriptName);
+    // Check if we're running under PHP built-in server
+    $isPHPServer = isset($_SERVER['SERVER_SOFTWARE']) &&
+                   strpos($_SERVER['SERVER_SOFTWARE'], 'PHP') !== false &&
+                   strpos($_SERVER['SERVER_SOFTWARE'], 'Development Server') !== false;
+
+    if ($isPHPServer) {
+        // PHP built-in server serves from the specified document root
+        // No subdirectory path needed
+        define('BASE_URL', $protocol . '://' . $host);
+    } else {
+        // Get the directory where index.php is located for other servers
+        $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
+
+        // For subdirectory installations, include the subdirectory path
+        if ($scriptDir !== '/' && $scriptDir !== '\\') {
+            $basePath = $scriptDir;
+        } else {
+            $basePath = '';
+        }
+
+        // Ensure no double slashes
+        $basePath = rtrim($basePath, '/');
+
+        define('BASE_URL', $protocol . '://' . $host . $basePath);
+    }
+} else {
+    // For command line or other environments, use default
+    define('BASE_URL', 'http://localhost');
+}
 define('ASSETS_URL', BASE_URL . '/public/assets');
 define('UPLOADS_URL', BASE_URL . '/public/uploads');
 

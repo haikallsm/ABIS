@@ -142,6 +142,31 @@ function requireAuth($role = null) {
 }
 
 /**
+ * Set flash message (success/error)
+ * @param string $type 'success' or 'error'
+ * @param string $message
+ */
+function setFlashMessage($type, $message) {
+    $_SESSION['flash_message'] = [
+        'type' => $type,
+        'message' => $message
+    ];
+}
+
+/**
+ * Get flash message and clear it
+ * @return array|null
+ */
+function getFlashMessage() {
+    if (isset($_SESSION['flash_message'])) {
+        $message = $_SESSION['flash_message'];
+        unset($_SESSION['flash_message']);
+        return $message;
+    }
+    return null;
+}
+
+/**
  * Redirect authenticated users (prevent access to login/register pages)
  */
 function redirectIfAuthenticated() {

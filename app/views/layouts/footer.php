@@ -1,5 +1,5 @@
 <!-- FOOTER -->
-<footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-12 mt-16">
+<footer class="bg-linear-to-r from-gray-800 to-gray-900 text-white py-12 mt-16">
     <div class="container mx-auto px-6">
         <div class="grid md:grid-cols-4 gap-8">
             <div>

@@ -3,7 +3,7 @@
     <div class="container mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-primary to-dark rounded-2xl flex items-center justify-center shadow-lg">
+                <div class="w-16 h-16 bg-linear-to-br from-primary to-dark rounded-2xl flex items-center justify-center shadow-lg">
                     <i class="fas fa-file-contract text-white text-2xl"></i>
                 </div>
                 <div>

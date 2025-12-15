@@ -27,12 +27,24 @@ class User {
      * @return array|null
      */
     public function findByUsername($username) {
-        return fetchOne(
-            "SELECT id, username, email, password, full_name, role, phone, address, created_at, updated_at, is_active
-             FROM {$this->table}
-             WHERE username = ? AND is_active = 1",
-            [$username]
-        );
+        // Check if input looks like NIK (16 digits) or username
+        if (is_numeric($username) && strlen($username) === 16) {
+            // Search by NIK
+            return fetchOne(
+                "SELECT id, username, email, password, full_name, nik, role, phone, address, created_at, updated_at, is_active
+                 FROM {$this->table}
+                 WHERE nik = ? AND is_active = 1",
+                [$username]
+            );
+        } else {
+            // Search by username
+            return fetchOne(
+                "SELECT id, username, email, password, full_name, nik, role, phone, address, created_at, updated_at, is_active
+                 FROM {$this->table}
+                 WHERE username = ? AND is_active = 1",
+                [$username]
+            );
+        }
     }
 
     /**
@@ -61,8 +73,19 @@ class User {
             $data['created_at'] = date(DATETIME_FORMAT);
             $data['updated_at'] = date(DATETIME_FORMAT);
 
-            return insert($this->table, $data);
+            // Debug: Log data sebelum insert
+            error_log("User create: Attempting to insert data: " . json_encode($data));
+
+            $result = insert($this->table, $data);
+
+            // Debug: Log hasil insert
+            error_log("User create: Insert result: " . ($result ? "SUCCESS (ID: $result)" : "FAILED"));
+
+            return $result;
         } catch (Exception $e) {
+            // Debug: Log exception detail
+            error_log("User create: Exception caught: " . $e->getMessage());
+            error_log("User create: Exception trace: " . $e->getTraceAsString());
             return false;
         }
     }
@@ -162,6 +185,37 @@ class User {
     }
 
     /**
+     * Get all users without pagination (for management)
+     * @param string $search
+     * @return array
+     */
+    public function getAllUsers($search = '') {
+        $whereClause = "is_active = 1";
+        $params = [];
+
+        if (!empty($search)) {
+            $whereClause .= " AND (username LIKE ? OR email LIKE ? OR full_name LIKE ?)";
+            $searchParam = "%{$search}%";
+            $params = [$searchParam, $searchParam, $searchParam];
+        }
+
+        $users = fetchAll(
+            "SELECT id, username, email, full_name, role, phone, address, created_at
+             FROM {$this->table}
+             WHERE {$whereClause}
+             ORDER BY created_at DESC",
+            $params
+        );
+
+        return [
+            'users' => $users,
+            'total' => count($users),
+            'pages' => 1,
+            'current_page' => 1
+        ];
+    }
+
+    /**
      * Get users by role
      * @param string $role
      * @return array
@@ -203,6 +257,24 @@ class User {
     public function emailExists($email, $excludeId = null) {
         $sql = "SELECT COUNT(*) FROM {$this->table} WHERE email = ? AND is_active = 1";
         $params = [$email];
+
+        if ($excludeId) {
+            $sql .= " AND id != ?";
+            $params[] = $excludeId;
+        }
+
+        return fetchValue($sql, $params) > 0;
+    }
+
+    /**
+     * Check if NIK exists
+     * @param string $nik
+     * @param int $excludeId
+     * @return bool
+     */
+    public function nikExists($nik, $excludeId = null) {
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE nik = ? AND is_active = 1";
+        $params = [$nik];
 
         if ($excludeId) {
             $sql .= " AND id != ?";

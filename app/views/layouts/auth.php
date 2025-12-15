@@ -8,33 +8,27 @@
     <!-- Custom CSS -->
     <link href="<?php echo ASSETS_URL; ?>/css/style.css" rel="stylesheet">
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- CSRF Token -->
-    <meta name="csrf-token" content="<?php echo generateCSRFToken(); ?>">
-
     <!-- Additional CSS -->
     <?php if (isset($extra_css)): ?>
         <?php foreach ($extra_css as $css): ?>
             <link href="<?php echo ASSETS_URL; ?>/css/<?php echo $css; ?>" rel="stylesheet">
         <?php endforeach; ?>
     <?php endif; ?>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="<?php echo generateCSRFToken(); ?>">
 </head>
-<body class="min-h-screen">
-    <!-- Header -->
-    <?php include __DIR__ . '/header.php'; ?>
-
-    <!-- Main Content -->
+<body>
+    <!-- Main Content - Full page for auth -->
     <main>
-        <?php echo $content; ?>
+        <?php
+        // Include the view content
+        include VIEWS_DIR . '/' . $view . '.php';
+        ?>
     </main>
-
-    <!-- Footer -->
-    <?php include __DIR__ . '/footer.php'; ?>
 
     <!-- JavaScript -->
     <script src="<?php echo ASSETS_URL; ?>/js/app.js"></script>

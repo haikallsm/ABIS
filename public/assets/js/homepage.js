@@ -48,11 +48,13 @@ function initRedirectHandlers() {
 }
 
 function redirectToLogin() {
-    window.location.href = '<?php echo BASE_URL; ?>/login';
+    // Use relative path - PHP built-in server handles this correctly
+    window.location.href = '/login';
 }
 
 function redirectToRegister() {
-    window.location.href = '<?php echo BASE_URL; ?>/register';
+    // Use relative path - PHP built-in server handles this correctly
+    window.location.href = '/register';
 }
 
 // Add smooth scrolling for anchor links

@@ -1,7 +1,7 @@
 <?php
 // Set page metadata
 $title = 'Beranda';
-$extra_css = ['homepage.css'];
+$extra_css = ['style.css', 'homepage.css'];
 $extra_js = ['homepage.js'];
 ?>
 
@@ -46,6 +46,11 @@ $extra_js = ['homepage.js'];
                         Dashboard User
                     </a>
                 <?php endif; ?>
+                <a href="<?php echo BASE_URL; ?>/logout"
+                   class="bg-red-500 hover:bg-red-600 text-white px-6 py-4 rounded-xl font-semibold text-lg shadow-lg transition duration-200">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    Logout
+                </a>
             </div>
         <?php endif; ?>
     </div>
@@ -396,11 +401,18 @@ $extra_js = ['homepage.js'];
                     Login untuk Memulai Pengajuan
                 </button>
             <?php else: ?>
-                <a href="<?php echo isAdmin() ? BASE_URL . '/admin/dashboard' : BASE_URL . '/dashboard'; ?>"
-                   class="bg-white text-primary px-12 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition shadow-lg inline-block">
-                    <i class="fas fa-rocket mr-3"></i>
-                    Akses Dashboard
-                </a>
+                <div class="flex justify-center space-x-4">
+                    <a href="<?php echo isAdmin() ? BASE_URL . '/admin/dashboard' : BASE_URL . '/dashboard'; ?>"
+                       class="bg-white text-primary px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition shadow-lg">
+                        <i class="fas fa-rocket mr-3"></i>
+                        Akses Dashboard
+                    </a>
+                    <a href="<?php echo BASE_URL; ?>/logout"
+                       class="bg-red-500 hover:bg-red-600 text-white px-6 py-4 rounded-xl font-semibold text-lg shadow-lg transition duration-200">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        Logout
+                    </a>
+                </div>
             <?php endif; ?>
 
             <p class="text-blue-100 text-sm mt-4">

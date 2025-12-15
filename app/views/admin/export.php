@@ -5,9 +5,7 @@ $extra_css = ['admin-export.css'];
 $extra_js = ['admin-export.js'];
 ?>
 
-<body class="bg-gray-100 antialiased">
-<div class="flex h-screen overflow-hidden">
-    <!-- Sidebar -->
+<div id="appLayout" class="flex min-h-screen">
     <aside class="w-72 sidebar flex flex-col">
 
         <!-- sidebar header removed to show menu immediately -->
@@ -32,7 +30,6 @@ $extra_js = ['admin-export.js'];
 
                 <div class="px-6">
                     <p class="sidebar-section-title uppercase tracking-wider mb-3">Pengelolaan Data</p>
-
                     <a href="<?php echo BASE_URL; ?>/admin/users" class="sidebar-link flex items-center py-4">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20h-5v-2a3 3 0 00-5.356-1.857M9 20v-2a3 3 0 015.548-1.077M10 11a2 2 0 100-4 2 2 0 000 4zm7 0a2 2 0 100-4 2 2 0 000 4zM10 17a5 5 0 008.274 2.87M15 17a5 5 0 008.274 2.87"></path>
@@ -40,14 +37,13 @@ $extra_js = ['admin-export.js'];
                         <span>Users</span>
                     </a>
 
-                    <a href="<?php echo BASE_URL; ?>/admin/requests" class="sidebar-link active flex items-center py-4">
+                    <a href="<?php echo BASE_URL; ?>/admin/export" class="sidebar-link active flex items-center py-4">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v4a1 1 0 001 1h6a1 1 0 001-1V7m0 0a2 2 0 00-2-2H9a2 2 0 00-2 2m0 0v11a2 2 0 002 2h4a2 2 0 002-2V7m-4-2H8"></path>
                         </svg>
                         <span>Export Data</span>
                     </a>
                 </div>
-
                 <div class="px-6">
                     <p class="sidebar-section-title uppercase tracking-wider mb-3">Surat & Dokumen</p>
 
@@ -65,7 +61,6 @@ $extra_js = ['admin-export.js'];
                         <span>Pengajuan Surat</span>
                     </a>
                 </div>
-
             </nav>
 
             <!-- Logout sederhana di bawah -->
@@ -83,6 +78,7 @@ $extra_js = ['admin-export.js'];
                 </div>
             </div>
         </div>
+
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -106,23 +102,23 @@ $extra_js = ['admin-export.js'];
                         <div class="flex items-center gap-4">
                             <div>
                                 <h1 class="text-3xl font-bold bg-linear-to-r from-primary via-primary-light to-secondary bg-clip-text text-transparent tracking-tight">
-                                    Export Data Surat
+                                    Export Data
                                 </h1>
                                 <!-- Garis dekoratif bawah judul -->
-                                <div class="h-1.5 w-40 mt-2 bg-linear-to-r from-primary/60 to-secondary/40 rounded-full"></div>
+                                <div class="h-1.5 w-32 mt-2 bg-linear-to-r from-primary/60 to-secondary/40 rounded-full"></div>
                             </div>
 
                             <!-- Badge jumlah data -->
                             <div class="px-4 py-1.5 bg-linear-to-r from-accent/20 to-highlight/20 rounded-full border border-accent/30">
                                 <span class="text-sm font-semibold text-dark flex items-center gap-1.5">
                                     <span class="w-2 h-2 bg-accent rounded-full animate-pulse"></span>
-                                    <span class="bg-linear-to-r from-dark to-primary bg-clip-text text-transparent"><?php echo count($recent_requests ?? []); ?> Data Surat</span>
+                                    <span class="bg-linear-to-r from-dark to-primary bg-clip-text text-transparent">3 Data Surat</span>
                                 </span>
                             </div>
                         </div>
 
                         <p class="text-gray-600 mt-3 pl-1 text-lg font-medium">
-                            Ekspor data surat dengan filter yang fleksibel dan lengkap
+                            Ekspor data surat dengan filter yang fleksibel
                         </p>
                     </div>
                 </div>
@@ -137,40 +133,13 @@ $extra_js = ['admin-export.js'];
                         <div class="w-3 h-3 rounded-full bg-secondary animate-pulse"></div>
                         <span class="text-gray-600 font-medium">Surat Pengantar</span>
                     </div>
-                    <div class="flex items-center gap-2 text-sm">
-                        <div class="w-3 h-3 rounded-full bg-accent animate-pulse"></div>
-                        <span class="text-gray-600 font-medium">Data Lengkap</span>
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- SCROLLABLE CONTENT SECTION -->
+        <!-- Konten utama -->
         <div class="scroll-container">
-            <div class="max-w-7xl mx-auto px-6 py-6">
-
-                <!-- Flash Messages -->
-                <?php if (isset($_SESSION['success'])): ?>
-                    <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                            </svg>
-                            <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <?php if (isset($_SESSION['error'])): ?>
-                    <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                            </svg>
-                            <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
+            <div class="max-w-7xl mx-auto px-6 pb-6">
 
                 <!-- Filter Section -->
                 <div class="cream-card p-8 mb-6">
@@ -323,31 +292,5 @@ $extra_js = ['admin-export.js'];
                 </div>
             </div>
         </div>
-        </div>
     </div>
 </div>
-
-<script>
-// Make BASE_URL available to JavaScript
-const BASE_URL = '<?php echo BASE_URL; ?>';
-
-// Toggle sidebar function
-function toggleSidebar() {
-    var app = document.getElementById('appLayout');
-    if (!app) return;
-    app.classList.toggle('sidebar-collapsed');
-    // Simpan state sidebar di localStorage
-    if (app.classList.contains('sidebar-collapsed')) {
-        localStorage.setItem('sidebar-collapsed', 'true');
-    } else {
-        localStorage.setItem('sidebar-collapsed', 'false');
-    }
-}
-
-// Cek state sidebar saat halaman dimuat
-document.addEventListener('DOMContentLoaded', function() {
-    if (localStorage.getItem('sidebar-collapsed') === 'true') {
-        document.getElementById('appLayout').classList.add('sidebar-collapsed');
-    }
-});
-</script>

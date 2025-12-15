@@ -61,12 +61,13 @@ class UserController {
         $extra_css = ['user-sidebar.css', 'user-dashboard.css'];
         $extra_js = ['user-navigation.js'];
 
-        // Load dashboard view directly
+        // Load dashboard view
         ob_start();
         include VIEWS_DIR . '/user/dashboard.php';
         $content = ob_get_clean();
 
-        echo $content;
+        // Load user layout
+        include VIEWS_DIR . '/layouts/user.php';
     }
 
     /**
@@ -76,10 +77,24 @@ class UserController {
         requireAuth('user');
 
         $letterTypes = $this->letterTypeModel->getAllActive();
-
         $this->renderView('user/create_request', [
             'title' => 'Buat Permohonan Surat - ' . APP_NAME,
             'letterTypes' => $letterTypes
+        ]);
+    }
+
+    /**
+     * Show user's request history
+     */
+    public function requests() {
+        requireAuth('user');
+
+        $userId = getCurrentUserId();
+        $requests = $this->requestModel->findByUserId($userId);
+
+        $this->renderView('user/requests', [
+            'title' => 'Riwayat Permohonan - ' . APP_NAME,
+            'requests' => $requests
         ]);
     }
 
@@ -155,25 +170,9 @@ class UserController {
     public function viewRequest($requestId) {
         requireAuth('user');
 
-        $userId = getCurrentUserId();
-        $request = $this->requestModel->findById($requestId);
-
-        if (!$request || $request['user_id'] != $userId) {
-            http_response_code(404);
-            $this->renderView('errors/404', [
-                'title' => 'Request Tidak Ditemukan - ' . APP_NAME
-            ]);
-            return;
-        }
-
-        // Parse request data
-        $requestData = json_decode($request['request_data'], true) ?? [];
-
-        $this->renderView('user/view_request', [
-            'title' => 'Detail Permohonan - ' . APP_NAME,
-            'request' => $request,
-            'requestData' => $requestData
-        ]);
+        // Redirect to dashboard for now (view_request view doesn't exist)
+        header('Location: ' . BASE_URL . '/dashboard');
+        exit;
     }
 
     /**
@@ -230,11 +229,9 @@ class UserController {
      */
     private function getUserStats($userId) {
         $stats = [
-            'total' => 0,
-            'pending' => 0,
-            'approved' => 0,
-            'rejected' => 0,
-            'completed' => 0
+            'total_requests' => 0,
+            'pending_requests' => 0,
+            'completed_requests' => 0
         ];
 
         $userRequests = fetchAll(
@@ -243,8 +240,16 @@ class UserController {
         );
 
         foreach ($userRequests as $stat) {
-            $stats[$stat['status']] = (int) $stat['count'];
-            $stats['total'] += (int) $stat['count'];
+            $status = $stat['status'];
+            $count = (int) $stat['count'];
+
+            $stats['total_requests'] += $count;
+
+            if ($status === 'pending') {
+                $stats['pending_requests'] = $count;
+            } elseif (in_array($status, ['approved', 'completed'])) {
+                $stats['completed_requests'] += $count;
+            }
         }
 
         return $stats;
@@ -274,6 +279,11 @@ class UserController {
     private function renderView($view, $data = []) {
         // Extract data to make variables available in view
         extract($data);
+
+        // Start output buffering to capture view content
+        ob_start();
+        include VIEWS_DIR . '/' . $view . '.php';
+        $content = ob_get_clean();
 
         // Include layout
         require VIEWS_DIR . '/layouts/user.php';

@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($title) ? $title . ' - ' : ''; ?>ABIS - Aplikasi Desa Digital</title>
+    <title><?php echo isset($title) ? $title . ' - ' : ''; ?>Surat-In - Aplikasi Desa Digital</title>
 
-    <!-- Custom CSS -->
+    <!-- Compiled Tailwind CSS (CLI v4) -->
     <link href="<?php echo ASSETS_URL; ?>/css/style.css" rel="stylesheet">
+
+    <!-- Admin Dashboard CSS -->
+    <link href="<?php echo ASSETS_URL; ?>/css/admin-dashboard.css" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -24,20 +27,11 @@
         <?php endforeach; ?>
     <?php endif; ?>
 </head>
-<body class="min-h-screen">
-    <!-- Header -->
-    <?php include __DIR__ . '/header.php'; ?>
+<body class="cream-bg antialiased">
+    <?php echo $content; ?>
 
-    <!-- Main Content -->
-    <main>
-        <?php echo $content; ?>
-    </main>
-
-    <!-- Footer -->
-    <?php include __DIR__ . '/footer.php'; ?>
-
-    <!-- JavaScript -->
-    <script src="<?php echo ASSETS_URL; ?>/js/app.js"></script>
+    <!-- Admin Dashboard JavaScript -->
+    <script src="<?php echo ASSETS_URL; ?>/js/admin-dashboard.js"></script>
 
     <!-- Additional JavaScript -->
     <?php if (isset($extra_js)): ?>
@@ -54,3 +48,4 @@
     <?php endif; ?>
 </body>
 </html>
+
