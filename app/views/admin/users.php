@@ -245,7 +245,7 @@ $extra_js = ['admin-dashboard.js'];
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <span class="px-3 py-1.5 rounded-full text-xs font-semibold <?php echo $user['role'] === 'admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-green-100 text-green-700 border border-green-200'; ?>">
+                                        <span class="px-3 py-1.5 rounded-full text-xs font-semibold <?php echo $user['role'] === 'admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-green-100 border-green-200'; ?>">
                                             <?php echo ucfirst($user['role']); ?>
                                         </span>
                                     </td>
