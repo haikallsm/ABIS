@@ -624,52 +624,59 @@ $router->add('GET', '/api/letter-types/:id/fields', function($params) {
     // Get required fields configuration
     $requiredFields = $letterTypeModel->getRequiredFields($letterTypeId);
 
-    // Define field categories and their properties
-    $fieldCategories = [
-        // Profile-based fields (auto-fill from user data)
-        'profile' => [
-            'nama' => ['label' => 'Nama Lengkap', 'type' => 'text', 'readonly' => true, 'icon' => 'user'],
-            'nik' => ['label' => 'NIK', 'type' => 'text', 'readonly' => true, 'icon' => 'id-card'],
-            'alamat' => ['label' => 'Alamat', 'type' => 'textarea', 'readonly' => true, 'icon' => 'map-marker'],
-            'jenis_kelamin' => ['label' => 'Jenis Kelamin', 'type' => 'select', 'readonly' => true, 'options' => ['Laki-laki', 'Perempuan'], 'icon' => 'venus-mars'],
-            'tempat_lahir' => ['label' => 'Tempat Lahir', 'type' => 'text', 'readonly' => true, 'icon' => 'map'],
-            'tanggal_lahir' => ['label' => 'Tanggal Lahir', 'type' => 'date', 'readonly' => true, 'icon' => 'calendar'],
-            'agama' => ['label' => 'Agama', 'type' => 'select', 'readonly' => true, 'options' => ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'], 'icon' => 'pray'],
-            'pekerjaan' => ['label' => 'Pekerjaan', 'type' => 'text', 'readonly' => true, 'icon' => 'briefcase']
-        ],
+    // Define all manual fields (no auto-fill from profile)
+    $allFields = [
+        // Personal information fields (manual entry)
+        'nama' => ['label' => 'Nama Lengkap', 'type' => 'text', 'required' => true, 'placeholder' => 'Masukkan nama lengkap', 'icon' => 'user'],
+        'nik' => ['label' => 'NIK', 'type' => 'text', 'required' => true, 'placeholder' => 'Masukkan 16 digit NIK', 'icon' => 'id-card'],
+        'tempat_lahir' => ['label' => 'Tempat Lahir', 'type' => 'text', 'required' => true, 'placeholder' => 'Masukkan tempat lahir', 'icon' => 'map'],
+        'tanggal_lahir' => ['label' => 'Tanggal Lahir', 'type' => 'date', 'required' => true, 'icon' => 'calendar'],
+        'jenis_kelamin' => ['label' => 'Jenis Kelamin', 'type' => 'select', 'required' => true, 'options' => ['Laki-laki', 'Perempuan'], 'icon' => 'venus-mars'],
+        'agama' => ['label' => 'Agama', 'type' => 'select', 'required' => true, 'options' => ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'], 'icon' => 'pray'],
+        'pekerjaan' => ['label' => 'Pekerjaan', 'type' => 'text', 'required' => true, 'placeholder' => 'Masukkan pekerjaan', 'icon' => 'briefcase'],
+        'alamat' => ['label' => 'Alamat', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Masukkan alamat lengkap', 'icon' => 'map-marker'],
 
-        // Required fields based on letter type
-        'required' => [
-            'keperluan' => ['label' => 'Keperluan', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Jelaskan keperluan pembuatan surat', 'icon' => 'clipboard-list'],
-            'alamat_domisili' => ['label' => 'Alamat Domisili', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Alamat domisili saat ini', 'icon' => 'home'],
+        // Letter-specific fields
+        'keperluan' => ['label' => 'Keperluan', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Jelaskan keperluan pembuatan surat', 'icon' => 'clipboard-list'],
+        'alamat_domisili' => ['label' => 'Alamat Domisili', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Alamat domisili saat ini', 'icon' => 'home'],
 
-            // Business fields
-            'nama_usaha' => ['label' => 'Nama Usaha', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama usaha atau bisnis', 'icon' => 'building'],
-            'jenis_usaha' => ['label' => 'Jenis Usaha', 'type' => 'text', 'required' => true, 'placeholder' => 'Jenis kegiatan usaha', 'icon' => 'industry'],
-            'alamat_usaha' => ['label' => 'Alamat Usaha', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Lokasi usaha', 'icon' => 'map-marker'],
+        // Business fields
+        'nama_usaha' => ['label' => 'Nama Usaha', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama usaha atau bisnis', 'icon' => 'building'],
+        'jenis_usaha' => ['label' => 'Jenis Usaha', 'type' => 'text', 'required' => true, 'placeholder' => 'Jenis kegiatan usaha', 'icon' => 'industry'],
+        'alamat_usaha' => ['label' => 'Alamat Usaha', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Lokasi usaha', 'icon' => 'map-marker'],
 
-            // Education fields
-            'sekolah' => ['label' => 'Asal Sekolah/Kampus', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama sekolah atau universitas', 'icon' => 'school'],
-            'nis_nim' => ['label' => 'NIS/NIM', 'type' => 'text', 'required' => true, 'placeholder' => 'Nomor Induk Siswa/Mahasiswa', 'icon' => 'graduation-cap'],
-            'jurusan' => ['label' => 'Jurusan/Program Studi', 'type' => 'text', 'required' => true, 'placeholder' => 'Jurusan atau program studi', 'icon' => 'book'],
-            'semester' => ['label' => 'Semester', 'type' => 'number', 'required' => true, 'placeholder' => 'Semester saat ini', 'icon' => 'clock', 'min' => 1, 'max' => 14],
-            'nama_beasiswa' => ['label' => 'Nama Beasiswa', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama program beasiswa', 'icon' => 'trophy'],
-            'nama_ayah' => ['label' => 'Nama Ayah/Wali', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama lengkap ayah atau wali', 'icon' => 'user-father'],
+        // Education fields
+        'sekolah' => ['label' => 'Asal Sekolah/Kampus', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama sekolah atau universitas', 'icon' => 'school'],
+        'nis_nim' => ['label' => 'NIS/NIM', 'type' => 'text', 'required' => true, 'placeholder' => 'Nomor Induk Siswa/Mahasiswa', 'icon' => 'graduation-cap'],
+        'jurusan' => ['label' => 'Jurusan/Program Studi', 'type' => 'text', 'required' => true, 'placeholder' => 'Jurusan atau program studi', 'icon' => 'book'],
+        'semester' => ['label' => 'Semester', 'type' => 'number', 'required' => true, 'placeholder' => 'Semester saat ini', 'icon' => 'clock', 'min' => 1, 'max' => 14],
+        'nama_beasiswa' => ['label' => 'Nama Beasiswa', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama program beasiswa', 'icon' => 'trophy'],
+        'nama_ayah' => ['label' => 'Nama Ayah/Wali', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama lengkap ayah atau wali', 'icon' => 'user-father'],
 
-            // Family fields
-            'nik_pasangan' => ['label' => 'NIK Pasangan', 'type' => 'text', 'required' => true, 'placeholder' => 'NIK calon pasangan', 'icon' => 'heart'],
-            'nama_pasangan' => ['label' => 'Nama Pasangan', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama lengkap calon pasangan', 'icon' => 'user'],
+        // Family fields
+        'nik_pasangan' => ['label' => 'NIK Pasangan', 'type' => 'text', 'required' => true, 'placeholder' => 'NIK calon pasangan', 'icon' => 'heart'],
+        'nama_pasangan' => ['label' => 'Nama Pasangan', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama lengkap calon pasangan', 'icon' => 'user'],
 
-            // Event fields
-            'nama_kegiatan' => ['label' => 'Nama Kegiatan', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama acara atau kegiatan', 'icon' => 'calendar-event'],
-            'tanggal_kegiatan' => ['label' => 'Tanggal Kegiatan', 'type' => 'date', 'required' => true, 'icon' => 'calendar-day'],
-            'waktu_kegiatan' => ['label' => 'Waktu Kegiatan', 'type' => 'text', 'required' => true, 'placeholder' => 'Waktu pelaksanaan', 'icon' => 'clock'],
-            'tempat_kegiatan' => ['label' => 'Tempat Kegiatan', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Lokasi kegiatan', 'icon' => 'map-marker'],
-            'hiburan' => ['label' => 'Hiburan/Entertainment', 'type' => 'text', 'required' => true, 'placeholder' => 'Jenis hiburan (jika ada)', 'icon' => 'music'],
+        // Event fields
+        'nama_kegiatan' => ['label' => 'Nama Kegiatan', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama acara atau kegiatan', 'icon' => 'calendar-event'],
+        'tanggal_kegiatan' => ['label' => 'Tanggal Kegiatan', 'type' => 'date', 'required' => true, 'icon' => 'calendar-day'],
+        'waktu_kegiatan' => ['label' => 'Waktu Kegiatan', 'type' => 'text', 'required' => true, 'placeholder' => 'Waktu pelaksanaan', 'icon' => 'clock'],
+        'tempat_kegiatan' => ['label' => 'Tempat Kegiatan', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Lokasi kegiatan', 'icon' => 'map-marker'],
+        'hiburan' => ['label' => 'Hiburan/Entertainment', 'type' => 'text', 'required' => true, 'placeholder' => 'Jenis hiburan (jika ada)', 'icon' => 'music'],
 
-            // Financial fields
-            'penghasilan' => ['label' => 'Penghasilan', 'type' => 'number', 'required' => true, 'placeholder' => 'Penghasilan per bulan (Rp)', 'icon' => 'money-bill', 'min' => 0]
-        ]
+        // Financial fields
+        'penghasilan' => ['label' => 'Penghasilan', 'type' => 'number', 'required' => true, 'placeholder' => 'Penghasilan per bulan (Rp)', 'icon' => 'money-bill', 'min' => 0]
+    ];
+
+    // Map letter type codes to their required fields (including personal info)
+    $letterTypeFieldMap = [
+        'SKD' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'keperluan', 'alamat_domisili'], // Surat Keterangan Domisili
+        'SKU' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // Surat Keterangan Usaha
+        'SKTM' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'penghasilan', 'keperluan'], // Surat Keterangan Tidak Mampu
+        'IZU' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // Izin Usaha
+        'BR' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'sekolah', 'nis_nim', 'jurusan', 'semester', 'nama_beasiswa', 'nama_ayah', 'keperluan'], // Beasiswa Recommendation
+        'SPN' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nik_pasangan', 'nama_pasangan', 'keperluan'], // Surat Pengantar Nikah
+        'IZK' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_kegiatan', 'tanggal_kegiatan', 'waktu_kegiatan', 'tempat_kegiatan', 'hiburan', 'keperluan'] // Izin Kegiatan
     ];
 
     // Build response based on letter type
@@ -683,47 +690,22 @@ $router->add('GET', '/api/letter-types/:id/fields', function($params) {
         'field_categories' => []
     ];
 
-    // Add profile fields (always available for auto-fill)
-    $response['field_categories']['profile'] = [
-        'title' => 'Data dari Profile',
-        'description' => 'Data ini akan diisi otomatis dari profil Anda',
-        'icon' => 'user-circle',
+    // Single category for all manual fields
+    $response['field_categories']['manual'] = [
+        'title' => 'Formulir Surat',
+        'description' => 'Silakan isi semua data yang diperlukan untuk pembuatan surat',
+        'icon' => 'edit',
         'fields' => []
     ];
 
-    foreach ($fieldCategories['profile'] as $fieldName => $config) {
-        $response['field_categories']['profile']['fields'][] = array_merge($config, [
-            'name' => $fieldName,
-            'category' => 'profile'
-        ]);
-    }
-
-    // Add required fields based on letter type configuration
-    $response['field_categories']['required'] = [
-        'title' => 'Data Wajib Diisi',
-        'description' => 'Data khusus untuk jenis surat ini',
-        'icon' => 'exclamation-triangle',
-        'fields' => []
-    ];
-
-    // Map letter type codes to their required fields
-    $letterTypeFieldMap = [
-        'SKD' => ['keperluan', 'alamat_domisili'], // Surat Keterangan Domisili
-        'SKU' => ['nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // Surat Keterangan Usaha
-        'SKTM' => ['pekerjaan', 'penghasilan', 'keperluan'], // Surat Keterangan Tidak Mampu
-        'IZU' => ['nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // Izin Usaha (same as SKU)
-        'BR' => ['sekolah', 'nis_nim', 'jurusan', 'semester', 'nama_beasiswa', 'nama_ayah', 'keperluan'], // Beasiswa Recommendation
-        'SPN' => ['nik_pasangan', 'nama_pasangan', 'keperluan'], // Surat Pengantar Nikah
-        'IZK' => ['nama_kegiatan', 'tanggal_kegiatan', 'waktu_kegiatan', 'tempat_kegiatan', 'hiburan', 'keperluan'] // Izin Kegiatan
-    ];
-
+    // Add all required fields for this letter type
     $requiredFieldNames = $letterTypeFieldMap[$letterType['code']] ?? [];
 
     foreach ($requiredFieldNames as $fieldName) {
-        if (isset($fieldCategories['required'][$fieldName])) {
-            $response['field_categories']['required']['fields'][] = array_merge(
-                $fieldCategories['required'][$fieldName],
-                ['name' => $fieldName, 'category' => 'required']
+        if (isset($allFields[$fieldName])) {
+            $response['field_categories']['manual']['fields'][] = array_merge(
+                $allFields[$fieldName],
+                ['name' => $fieldName, 'category' => 'manual']
             );
         }
     }

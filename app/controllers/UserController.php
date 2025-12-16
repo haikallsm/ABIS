@@ -219,8 +219,18 @@ class UserController {
         requireAuth('user');
 
         // Redirect to dashboard for now (view_request view doesn't exist)
-        header('Location: ' . BASE_URL . '/dashboard');
-        exit;
+        $userId = getCurrentUserId();
+        $request = $this->requestModel->findById($requestId);
+
+        if (!$request || $request['user_id'] != $userId) {
+            http_response_code(404);
+            exit('Permohonan tidak ditemukan');
+        }
+
+        $this->renderView('user/view_request', [
+            'title' => 'Detail Surat',
+            'request' => $request
+        ]);
     }
 
     /**
@@ -467,75 +477,65 @@ class UserController {
      * @return array
      */
     private function getRequiredFieldsForLetterType($letterTypeId) {
-        // Define field configurations based on letter type
-        $fieldConfigs = [
-            // Basic profile fields (auto-filled, not required for form submission)
-            'profile' => [
-                'nama' => ['label' => 'Nama Lengkap', 'type' => 'text', 'required' => false, 'readonly' => true],
-                'nik' => ['label' => 'NIK', 'type' => 'text', 'required' => false, 'readonly' => true],
-                'alamat' => ['label' => 'Alamat', 'type' => 'textarea', 'required' => false, 'readonly' => true],
-                'jenis_kelamin' => ['label' => 'Jenis Kelamin', 'type' => 'select', 'required' => false, 'readonly' => true],
-                'tempat_lahir' => ['label' => 'Tempat Lahir', 'type' => 'text', 'required' => false, 'readonly' => true],
-                'tanggal_lahir' => ['label' => 'Tanggal Lahir', 'type' => 'date', 'required' => false, 'readonly' => true],
-                'agama' => ['label' => 'Agama', 'type' => 'select', 'required' => false, 'readonly' => true],
-                'pekerjaan' => ['label' => 'Pekerjaan', 'type' => 'text', 'required' => false, 'readonly' => true]
-            ],
+        // Define all manual fields (no auto-fill from profile)
+        $allFields = [
+            // Personal information fields (manual entry)
+            'nama' => ['label' => 'Nama Lengkap', 'type' => 'text', 'required' => true],
+            'nik' => ['label' => 'NIK', 'type' => 'text', 'required' => true],
+            'tempat_lahir' => ['label' => 'Tempat Lahir', 'type' => 'text', 'required' => true],
+            'tanggal_lahir' => ['label' => 'Tanggal Lahir', 'type' => 'date', 'required' => true],
+            'jenis_kelamin' => ['label' => 'Jenis Kelamin', 'type' => 'select', 'required' => true],
+            'agama' => ['label' => 'Agama', 'type' => 'select', 'required' => true],
+            'pekerjaan' => ['label' => 'Pekerjaan', 'type' => 'text', 'required' => true],
+            'alamat' => ['label' => 'Alamat', 'type' => 'textarea', 'required' => true],
 
-            // Required fields based on letter type
-            'required' => [
-                'keperluan' => ['label' => 'Keperluan', 'type' => 'textarea', 'required' => true],
-                'alamat_domisili' => ['label' => 'Alamat Domisili', 'type' => 'textarea', 'required' => true],
+            // Letter-specific fields
+            'keperluan' => ['label' => 'Keperluan', 'type' => 'textarea', 'required' => true],
+            'alamat_domisili' => ['label' => 'Alamat Domisili', 'type' => 'textarea', 'required' => true],
 
-                // Business fields
-                'nama_usaha' => ['label' => 'Nama Usaha', 'type' => 'text', 'required' => true],
-                'jenis_usaha' => ['label' => 'Jenis Usaha', 'type' => 'text', 'required' => true],
-                'alamat_usaha' => ['label' => 'Alamat Usaha', 'type' => 'textarea', 'required' => true],
+            // Business fields
+            'nama_usaha' => ['label' => 'Nama Usaha', 'type' => 'text', 'required' => true],
+            'jenis_usaha' => ['label' => 'Jenis Usaha', 'type' => 'text', 'required' => true],
+            'alamat_usaha' => ['label' => 'Alamat Usaha', 'type' => 'textarea', 'required' => true],
 
-                // Education fields
-                'sekolah' => ['label' => 'Asal Sekolah/Kampus', 'type' => 'text', 'required' => true],
-                'nis_nim' => ['label' => 'NIS/NIM', 'type' => 'text', 'required' => true],
-                'jurusan' => ['label' => 'Jurusan/Program Studi', 'type' => 'text', 'required' => true],
-                'semester' => ['label' => 'Semester', 'type' => 'number', 'required' => true],
-                'nama_beasiswa' => ['label' => 'Nama Beasiswa', 'type' => 'text', 'required' => true],
-                'nama_ayah' => ['label' => 'Nama Ayah/Wali', 'type' => 'text', 'required' => true],
+            // Education fields
+            'sekolah' => ['label' => 'Asal Sekolah/Kampus', 'type' => 'text', 'required' => true],
+            'nis_nim' => ['label' => 'NIS/NIM', 'type' => 'text', 'required' => true],
+            'jurusan' => ['label' => 'Jurusan/Program Studi', 'type' => 'text', 'required' => true],
+            'semester' => ['label' => 'Semester', 'type' => 'number', 'required' => true],
+            'nama_beasiswa' => ['label' => 'Nama Beasiswa', 'type' => 'text', 'required' => true],
+            'nama_ayah' => ['label' => 'Nama Ayah/Wali', 'type' => 'text', 'required' => true],
 
-                // Family fields
-                'nik_pasangan' => ['label' => 'NIK Pasangan', 'type' => 'text', 'required' => true],
-                'nama_pasangan' => ['label' => 'Nama Pasangan', 'type' => 'text', 'required' => true],
+            // Family fields
+            'nik_pasangan' => ['label' => 'NIK Pasangan', 'type' => 'text', 'required' => true],
+            'nama_pasangan' => ['label' => 'Nama Pasangan', 'type' => 'text', 'required' => true],
 
-                // Event fields
-                'nama_kegiatan' => ['label' => 'Nama Kegiatan', 'type' => 'text', 'required' => true],
-                'tanggal_kegiatan' => ['label' => 'Tanggal Kegiatan', 'type' => 'date', 'required' => true],
-                'waktu_kegiatan' => ['label' => 'Waktu Kegiatan', 'type' => 'text', 'required' => true],
-                'tempat_kegiatan' => ['label' => 'Tempat Kegiatan', 'type' => 'textarea', 'required' => true],
-                'hiburan' => ['label' => 'Hiburan/Entertainment', 'type' => 'text', 'required' => true],
+            // Event fields
+            'nama_kegiatan' => ['label' => 'Nama Kegiatan', 'type' => 'text', 'required' => true],
+            'tanggal_kegiatan' => ['label' => 'Tanggal Kegiatan', 'type' => 'date', 'required' => true],
+            'waktu_kegiatan' => ['label' => 'Waktu Kegiatan', 'type' => 'text', 'required' => true],
+            'tempat_kegiatan' => ['label' => 'Tempat Kegiatan', 'type' => 'textarea', 'required' => true],
+            'hiburan' => ['label' => 'Hiburan/Entertainment', 'type' => 'text', 'required' => true],
 
-                // Financial fields
-                'penghasilan' => ['label' => 'Penghasilan', 'type' => 'number', 'required' => true]
-            ]
+            // Financial fields
+            'penghasilan' => ['label' => 'Penghasilan', 'type' => 'number', 'required' => true]
         ];
 
-        // Map letter type IDs to their required fields
+        // Map letter type IDs to their required fields (including personal info)
         $letterTypeFieldMap = [
-            1 => ['keperluan', 'alamat_domisili'], // SKD - Surat Keterangan Domisili
-            2 => ['nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // SKU - Surat Keterangan Usaha
-            3 => ['nik_pasangan', 'nama_pasangan', 'keperluan'], // SPN - Surat Pengantar Nikah
-            4 => ['pekerjaan', 'penghasilan', 'keperluan'], // SKTM - Surat Keterangan Tidak Mampu
-            // Add more letter types as needed
+            1 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'keperluan', 'alamat_domisili'], // SKD
+            2 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // SKU
+            3 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nik_pasangan', 'nama_pasangan', 'keperluan'], // SPN
+            4 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'penghasilan', 'keperluan'], // SKTM
         ];
 
         $result = [];
 
-        // Add profile fields (these are auto-filled, not required for validation)
-        foreach ($fieldConfigs['profile'] as $fieldName => $config) {
-            $result[$fieldName] = $config;
-        }
-
-        // Add required fields based on letter type
+        // Add all required fields for this letter type (all manual entry)
         if (isset($letterTypeFieldMap[$letterTypeId])) {
             foreach ($letterTypeFieldMap[$letterTypeId] as $fieldName) {
-                if (isset($fieldConfigs['required'][$fieldName])) {
-                    $result[$fieldName] = $fieldConfigs['required'][$fieldName];
+                if (isset($allFields[$fieldName])) {
+                    $result[$fieldName] = $allFields[$fieldName];
                 }
             }
         }

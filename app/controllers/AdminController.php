@@ -1341,13 +1341,29 @@ class AdminController {
      * @return array
      */
     private function preparePDFData($request, $letterType) {
-        $baseData = $this->getBasePDFData($request, $letterType);
-        $templateSpecificData = $this->getTemplateSpecificData($request);
+        $requestData = [];
+        $additionalData = [];
 
-        // Add user profile data for complete letter information
-        $userProfileData = $this->getUserProfileData($request['user_id']);
+        if (!empty($request['request_data'])) {
+            $requestData = json_decode($request['request_data'], true) ?? [];
+        }
 
-        return array_merge($baseData, $templateSpecificData, $userProfileData);
+        if (!empty($request['additional_data'])) {
+            $additionalData = json_decode($request['additional_data'], true) ?? [];
+        }
+
+        // Gabungkan semua data
+        $mergedRequest = array_merge(
+            $request,
+            $requestData,
+            $additionalData
+        );
+
+        $baseData = $this->getBasePDFData($mergedRequest, $letterType);
+        $templateSpecificData = $this->getTemplateSpecificData($mergedRequest);
+        
+        return array_merge($baseData, $templateSpecificData);
+        
     }
 
     /**
@@ -1429,27 +1445,29 @@ class AdminController {
             'letter_type' => $letterType,
             'current_date' => date('d F Y'),
             'letter_number' => $this->generateLetterNumber($request),
-
-            // Village/Regional data
+    
+            // Desa
             'kabupaten' => DEFAULT_KABUPATEN,
             'kecamatan' => DEFAULT_KECAMATAN,
             'desa' => DEFAULT_DESA,
             'alamat_desa' => DEFAULT_ALAMAT_DESA,
             'kepala_desa' => DEFAULT_KEPALA_DESA,
-
-            // Personal data
-            'nama' => $request['user_full_name'] ?? '',
+    
+            // DATA SURAT (FORM)
+            'nama' => $request['nama'] ?? $request['nama_lengkap'] ?? '',
             'nik' => $request['nik'] ?? '',
-            'jenis_kelamin' => $request['gender'] ?? '',
-            'tempat_lahir' => $request['birth_place'] ?? '',
-            'tanggal_lahir' => $request['birth_date'] ?? '',
-            'warganegara' => DEFAULT_WARGANEGARA,
-            'agama' => $request['religion'] ?? '',
-            'pekerjaan' => $request['occupation'] ?? DEFAULT_PEKERJAAN,
-            'alamat' => $request['address'] ?? '',
+            'jenis_kelamin' => $request['jenis_kelamin'] ?? '',
+            'tempat_lahir' => $request['tempat_lahir'] ?? '',
+            'tanggal_lahir' => $request['tanggal_lahir'] ?? '',
+            'agama' => $request['agama'] ?? '',
+            'pekerjaan' => $request['pekerjaan'] ?? '',
+            'alamat' => $request['alamat'] ?? '',
+            'warganegara' => $request['warganegara'] ?? DEFAULT_WARGANEGARA,
+    
             'nomor_surat' => $this->generateLetterNumber($request),
         ];
     }
+    
 
     /**
      * Get template-specific data based on letter type
@@ -1467,8 +1485,8 @@ class AdminController {
             // Business certificate data - use merged data
             'nama_usaha' => $request['nama_usaha'] ?? BUSINESS_CERTIFICATE_PLACEHOLDER,
             'jenis_usaha' => $request['jenis_usaha'] ?? '',
-            'mulai_usaha' => $request['mulai_usaha'] ?? BUSINESS_START_YEAR,
-            'alamat_usaha' => $request['alamat_usaha'] ?? $request['address'] ?? '',
+            'mulai_usaha' => $request['mulai_usaha'] ?? '........',
+            'alamat_usaha' => $request['alamat_usaha'] ?? $request['alamat'] ?? '',
             'luas_usaha' => $request['luas_usaha'] ?? '',
             'tujuan' => $request['tujuan'] ?? BUSINESS_PURPOSE,
             'penghasilan' => $request['penghasilan'] ?? '',

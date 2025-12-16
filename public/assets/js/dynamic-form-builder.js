@@ -53,20 +53,12 @@ class DynamicFormBuilder {
     }
 
     /**
-     * Load user profile data for auto-fill
+     * Load user profile data (no longer used for auto-fill)
      */
     async loadUserProfile() {
-        try {
-            const response = await fetch('/api/user/profile');
-            if (response.ok) {
-                this.userProfile = await response.json();
-                console.log('👤 User profile loaded:', this.userProfile);
-            } else {
-                console.warn('⚠️ Failed to load user profile');
-            }
-        } catch (error) {
-            console.error('❌ Error loading user profile:', error);
-        }
+        // Profile data no longer auto-fills form fields
+        // All fields are now manual entry
+        console.log('📝 Form uses manual entry only');
     }
 
     /**
@@ -107,7 +99,7 @@ class DynamicFormBuilder {
     }
 
     /**
-     * Render the dynamic form
+     * Render the dynamic form (manual entry only)
      */
     renderForm() {
         if (!this.formConfig) return;
@@ -117,13 +109,14 @@ class DynamicFormBuilder {
 
         container.innerHTML = '';
 
-        // Render each field category
-        Object.entries(this.formConfig.field_categories).forEach(([categoryKey, category]) => {
+        // Render manual fields category only
+        if (this.formConfig.field_categories.manual) {
+            const category = this.formConfig.field_categories.manual;
             if (category.fields && category.fields.length > 0) {
-                const categorySection = this.createCategorySection(categoryKey, category);
+                const categorySection = this.createCategorySection('manual', category);
                 container.appendChild(categorySection);
             }
-        });
+        }
 
         // Add form validation
         this.attachValidation();
@@ -237,22 +230,18 @@ class DynamicFormBuilder {
                 break;
         }
 
-        // Common attributes
+        // Common attributes (all manual entry, no readonly)
         input.name = field.name;
         input.id = `field_${field.name}`;
-        input.className = `form-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${field.readonly ? 'bg-gray-50 text-gray-600' : 'bg-white'}`;
+        input.className = `form-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white`;
 
         // Field-specific attributes
         if (field.placeholder) input.placeholder = field.placeholder;
         if (field.required) input.required = true;
-        if (field.readonly) input.readOnly = true;
         if (field.min !== undefined) input.min = field.min;
         if (field.max !== undefined) input.max = field.max;
 
-        // Auto-fill from user profile for profile fields
-        if (category === 'profile' && this.userProfile[field.name]) {
-            input.value = this.userProfile[field.name];
-        }
+        // No auto-fill - all manual entry
 
         return input;
     }
