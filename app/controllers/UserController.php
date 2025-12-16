@@ -146,9 +146,23 @@ class UserController {
         foreach ($requiredFields as $field => $config) {
             $value = sanitize($_POST[$field] ?? '');
 
-            // Check if field is required
-            if ($config['required'] && empty($value)) {
-                $errors[$field] = "Field '{$config['label']}' wajib diisi";
+            // Check if field is required - strict validation
+            if ($config['required']) {
+                // Check if field exists in POST data
+                if (!isset($_POST[$field])) {
+                    $errors[$field] = "Field '{$config['label']}' tidak ditemukan dalam form";
+                }
+                // Check if field is not empty (after trimming whitespace)
+                elseif (empty(trim($_POST[$field]))) {
+                    $errors[$field] = "Field '{$config['label']}' wajib diisi";
+                }
+                // Additional validation for specific field types
+                elseif ($field === 'nik' && strlen(trim($_POST[$field])) !== 16) {
+                    $errors[$field] = "NIK harus 16 digit";
+                }
+                elseif ($field === 'nama' && strlen(trim($_POST[$field])) < 2) {
+                    $errors[$field] = "Nama harus minimal 2 karakter";
+                }
             }
 
             // Only include non-empty values or required fields

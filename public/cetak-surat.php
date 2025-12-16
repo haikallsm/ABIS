@@ -73,12 +73,17 @@ $userData = [
 // Gabungkan semua data
 $data = array_merge($requestData, $userData);
 
-// Tentukan jenis surat berdasarkan letter_type_id dengan mapping yang lebih aman
+// Tentukan jenis surat berdasarkan letter_type_id dengan mapping yang sesuai AdminController
 $templateMap = [
-    1 => 'surat_keterangan_domisili',
-    2 => 'surat_keterangan_usaha',
-    3 => 'surat_keterangan_tidak_mampu',
-    4 => 'surat_keterangan', // Surat Pengantar Nikah menggunakan template umum
+    1 => 'surat_keterangan_domisili',      // Surat Keterangan Domisili
+    2 => 'surat_keterangan_usaha',         // Surat Keterangan Usaha
+    3 => 'surat_keterangan',               // Surat Pengantar Nikah (menggunakan template umum)
+    4 => 'surat_keterangan_tidak_mampu',   // Surat Keterangan Tidak Mampu
+    5 => 'surat_keterangan',               // Surat Keterangan (umum)
+    6 => 'surat_keterangan_belum_menikah', // Surat Keterangan Belum Menikah
+    7 => 'surat_rekomendasi_beasiswa',     // Surat Rekomendasi Beasiswa
+    8 => 'surat_izin_usaha',               // Surat Izin Usaha
+    9 => 'surat_izin_kegiatan',            // Surat Izin Kegiatan
 ];
 
 $jenis = $templateMap[$request['letter_type_id']] ?? 'surat_keterangan';
@@ -115,10 +120,10 @@ $nomor_surat = $request['letter_number'] ?? '470 / ' . rand(100, 999) . ' / ' . 
 /**
  * 4. DATA STATIS DESA
  */
-$desa = 'Terong Tawah';
-$kecamatan = 'Labuapi';
-$kabupaten = 'Lombok Barat';
-$alamat_desa = 'Jl. TGH. Mansyur - Kode Pos 83361';
+$desa = 'Kleteran';
+$kecamatan = 'Grabag';
+$kabupaten = 'Magelang';
+$alamat_desa = 'Jl. Telaga Bleder Km.1 Grabag Magelang';
 $kepala_desa = 'Muhammad Waris Zainal, S.Pd.';
 
 /**

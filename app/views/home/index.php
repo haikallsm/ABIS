@@ -16,7 +16,7 @@ $extra_js = ['homepage.js'];
 
         <h1 class="text-4xl md:text-5xl font-bold mb-6">
             Selamat Datang di
-            <span class="text-primary">ABIS</span>
+            <span class="text-primary">Surat - In</span>
         </h1>
 
         <p class="text-xl mb-8 max-w-2xl mx-auto bg-white bg-opacity-70 backdrop-blur-sm py-3 px-6 rounded-lg">
@@ -62,7 +62,7 @@ $extra_js = ['homepage.js'];
         <div class="max-w-4xl mx-auto text-center bg-white bg-opacity-80 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
             <h2 class="text-3xl font-bold mb-6">Desa Digital Terintegrasi</h2>
             <p class="text-lg mb-8 text-natural">
-                ABIS menghadirkan kemudahan layanan administrasi yang modern tanpa meninggalkan
+                Surat - In menghadirkan kemudahan layanan administrasi yang modern tanpa meninggalkan
                 nilai-nilai kearifan lokal. Sistem terintegrasi untuk pengelolaan surat menyurat
                 yang efisien dan transparan.
             </p>
@@ -195,7 +195,7 @@ $extra_js = ['homepage.js'];
         <div class="section-card p-8 soft-bg">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold text-natural mb-4">Dashboard Statistik Layanan</h2>
-                <p class="text-natural-light">Monitoring real-time layanan surat ABIS</p>
+                <p class="text-natural-light">Monitoring real-time layanan surat Surat - In</p>
             </div>
 
             <!-- Stats Grid -->
@@ -416,7 +416,7 @@ $extra_js = ['homepage.js'];
             <?php endif; ?>
 
             <p class="text-blue-100 text-sm mt-4">
-                * Layanan resmi ABIS - Sistem Terintegrasi • Gratis untuk semua pengguna
+                * Layanan resmi Surat - In - Sistem Terintegrasi • Gratis untuk semua pengguna
             </p>
         </div>
     </section>

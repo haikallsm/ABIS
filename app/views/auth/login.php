@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal e-Desa Penglipuran - <?php echo APP_NAME; ?></title>
+    <title>Portal Surat - In<?php echo APP_NAME; ?></title>
     <link href="<?php echo ASSETS_URL; ?>/css/style.css" rel="stylesheet">
     <link href="<?php echo ASSETS_URL; ?>/css/login-portal.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -36,13 +36,13 @@
         <div class="info-panel">
             <div class="logo-section">
                 <div class="logo">
-                    <div class="logo-icon">
-                        <i class="fas fa-village"></i>
+                    <div class="logo-image">
+                        <img src="<?php echo BASE_URL; ?>/templates/logo.png" alt="Logo Desa" style="width: 80px; height: auto;">
                     </div>
                     <div class="logo-text">Desa Digital</div>
                 </div>
                 <div class="tagline">
-                    Portal Layanan Digital Desa Penglipuran
+                    Portal Layanan Digital Desa Kleteran
                 </div>
             </div>
             
@@ -94,8 +94,7 @@
                                 NIK / Username
                             </label>
                             <input type="text" class="form-input" id="login-username" name="username"
-                                   placeholder="Masukkan NIK atau username Anda"
-                                   value="274822291798567">
+                                   placeholder="Masukkan NIK Anda" required>
                         </div>
                         
                         <div class="form-group">

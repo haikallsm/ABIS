@@ -454,12 +454,24 @@ class AdminController {
 
         // Different letter templates based on type
         switch(strtoupper($request['letter_type_code'])) {
-            case 'SK-KTP':
-                return $this->generateKTPLetter($request);
-            case 'SK-DOM':
-                return $this->generateDomicileLetter($request);
-            case 'SK-TM':
-                return $this->generatePoorLetter($request);
+            case 'SK':
+                return $this->generateGenericLetter($request); // Surat Keterangan Umum
+            case 'SKD':
+                return $this->generateDomicileLetter($request); // Surat Keterangan Domisili
+            case 'SKTM':
+                return $this->generatePoorLetter($request); // Surat Keterangan Tidak Mampu
+            case 'SKU':
+                return $this->generateBusinessLetter($request); // Surat Keterangan Usaha
+            case 'SKBM':
+                return $this->generateMarriageLetter($request); // Surat Keterangan Belum Menikah
+            case 'SRB':
+                return $this->generateScholarshipLetter($request); // Surat Rekomendasi Beasiswa
+            case 'SIU':
+                return $this->generateBusinessPermitLetter($request); // Surat Izin Usaha
+            case 'SIK':
+                return $this->generateEventPermitLetter($request); // Surat Izin Kegiatan
+            case 'SPN':
+                return $this->generateMarriageCertificateLetter($request); // Surat Pengantar Nikah
             default:
                 return $this->generateGenericLetter($request);
         }
@@ -1352,11 +1364,20 @@ class AdminController {
             $additionalData = json_decode($request['additional_data'], true) ?? [];
         }
 
-        // Gabungkan semua data
+        $flattenedAdditionalData = [];
+        foreach ($additionalData as $category => $categoryData) {
+            if (is_array($categoryData)) {
+                $flattenedAdditionalData = array_merge($flattenedAdditionalData, $categoryData);
+            }
+        }
+
+        $userProfile = $this->getUserProfileData($request['user_id']);
+
         $mergedRequest = array_merge(
-            $request,
-            $requestData,
-            $additionalData
+            $userProfile,            
+            $request,                
+            $requestData,            
+            $flattenedAdditionalData 
         );
 
         $baseData = $this->getBasePDFData($mergedRequest, $letterType);
@@ -1440,29 +1461,51 @@ class AdminController {
      * @return array
      */
     private function getBasePDFData($request, $letterType) {
+        $tgl_lahir = $request['tanggal_lahir'] ?? $request['birth_date'] ?? '';
+        if (!empty($tgl_lahir)) {
+            $tgl_lahir = date('d-m-Y', strtotime($tgl_lahir));
+        }
+
         return [
             'request' => $request,
             'letter_type' => $letterType,
             'current_date' => date('d F Y'),
             'letter_number' => $this->generateLetterNumber($request),
     
-            // Desa
-            'kabupaten' => DEFAULT_KABUPATEN,
-            'kecamatan' => DEFAULT_KECAMATAN,
-            'desa' => DEFAULT_DESA,
-            'alamat_desa' => DEFAULT_ALAMAT_DESA,
-            'kepala_desa' => DEFAULT_KEPALA_DESA,
+            // Desa Constants
+            'kabupaten' => defined('DEFAULT_KABUPATEN') ? DEFAULT_KABUPATEN : 'Gianyar',
+            'kecamatan' => defined('DEFAULT_KECAMATAN') ? DEFAULT_KECAMATAN : 'Blahbatuh',
+            'desa' => defined('DEFAULT_DESA') ? DEFAULT_DESA : 'Penglipuran',
+            'alamat_desa' => defined('DEFAULT_ALAMAT_DESA') ? DEFAULT_ALAMAT_DESA : '',
+            'kepala_desa' => defined('DEFAULT_KEPALA_DESA') ? DEFAULT_KEPALA_DESA : '',
     
-            // DATA SURAT (FORM)
-            'nama' => $request['nama'] ?? $request['nama_lengkap'] ?? '',
-            'nik' => $request['nik'] ?? '',
-            'jenis_kelamin' => $request['jenis_kelamin'] ?? '',
-            'tempat_lahir' => $request['tempat_lahir'] ?? '',
-            'tanggal_lahir' => $request['tanggal_lahir'] ?? '',
-            'agama' => $request['agama'] ?? '',
-            'pekerjaan' => $request['pekerjaan'] ?? '',
-            'alamat' => $request['alamat'] ?? '',
-            'warganegara' => $request['warganegara'] ?? DEFAULT_WARGANEGARA,
+            // DATA PENDUDUK (Mapping Key Indo vs English DB)
+            // Cek 'nama' (input form) -> 'nama_lengkap' -> 'full_name' (db users) -> 'user_full_name' (join)
+            'nama' => $request['nama'] ?? $request['nama_lengkap'] ?? $request['full_name'] ?? $request['user_full_name'] ?? '',
+            
+            // Cek NIK
+            'nik' => $request['nik'] ?? $request['user_nik'] ?? '',
+            
+            // Cek Jenis Kelamin (gender biasanya "Laki-laki"/"Perempuan" atau "M"/"F")
+            'jenis_kelamin' => $request['jenis_kelamin'] ?? $request['gender'] ?? '',
+            
+            // Cek Tempat Lahir
+            'tempat_lahir' => $request['tempat_lahir'] ?? $request['birth_place'] ?? '',
+            
+            // Cek Tanggal Lahir
+            'tanggal_lahir' => $tgl_lahir,
+            
+            // Cek Agama
+            'agama' => $request['agama'] ?? $request['religion'] ?? '',
+            
+            // Cek Pekerjaan
+            'pekerjaan' => $request['pekerjaan'] ?? $request['occupation'] ?? '',
+            
+            // Cek Alamat
+            'alamat' => $request['alamat'] ?? $request['address'] ?? '',
+            
+            // Warganegara
+            'warganegara' => $request['warganegara'] ?? $request['nationality'] ?? (defined('DEFAULT_WARGANEGARA') ? DEFAULT_WARGANEGARA : 'WNI'),
     
             'nomor_surat' => $this->generateLetterNumber($request),
         ];
@@ -1547,6 +1590,7 @@ class AdminController {
     private function getTemplateName($letterTypeName) {
         // Map letter type names to actual template filenames
         $templateMap = [
+            'Surat Keterangan' => 'surat_keterangan', // General letter
             'Surat Keterangan Domisili' => 'surat_keterangan_domisili',
             'Surat Keterangan Usaha' => 'surat_keterangan_usaha',
             'Surat Keterangan Tidak Mampu' => 'surat_keterangan_tidak_mampu',
@@ -1600,5 +1644,74 @@ class AdminController {
             error_log("Error getting next letter number: " . $e->getMessage());
             return 1;
         }
+    }
+
+    /**
+     * Generate Business Letter (SKU)
+     */
+    private function generateBusinessLetter($request) {
+        return $this->generatePDFWithTemplate($request, 'surat_keterangan_usaha');
+    }
+
+    /**
+     * Generate Marriage Letter (SKBM)
+     */
+    private function generateMarriageLetter($request) {
+        return $this->generatePDFWithTemplate($request, 'surat_keterangan_belum_menikah');
+    }
+
+    /**
+     * Generate Scholarship Recommendation Letter (SRB)
+     */
+    private function generateScholarshipLetter($request) {
+        return $this->generatePDFWithTemplate($request, 'surat_rekomendasi_beasiswa');
+    }
+
+    /**
+     * Generate Business Permit Letter (SIU)
+     */
+    private function generateBusinessPermitLetter($request) {
+        return $this->generatePDFWithTemplate($request, 'surat_izin_usaha');
+    }
+
+    /**
+     * Generate Event Permit Letter (SIK)
+     */
+    private function generateEventPermitLetter($request) {
+        return $this->generatePDFWithTemplate($request, 'surat_izin_kegiatan');
+    }
+
+    /**
+     * Generate Marriage Certificate Letter (SPN)
+     */
+    private function generateMarriageCertificateLetter($request) {
+        return $this->generatePDFWithTemplate($request, 'surat_keterangan');
+    }
+
+    /**
+     * Generate PDF using template file
+     * @param array $request
+     * @param string $templateName
+     * @return string PDF content
+     */
+    private function generatePDFWithTemplate($request, $templateName) {
+        $userName = $request['user_full_name'];
+        $nik = $request['nik'] ?? 'N/A';
+        $requestDate = date('d F Y', strtotime($request['created_at']));
+        $approvedDate = date('d F Y');
+
+        // Get template file content
+        $templatePath = TEMPLATE_DIR . $templateName . '.php';
+        if (!file_exists($templatePath)) {
+            error_log("Template not found: {$templatePath}");
+            return $this->generateGenericLetter($request);
+        }
+
+        // Load template and return content
+        ob_start();
+        include $templatePath;
+        $html = ob_get_clean();
+
+        return $html;
     }
 }

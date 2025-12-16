@@ -6,16 +6,16 @@
  */
 
 // Village/Regional Information
-define('DEFAULT_KABUPATEN', 'Lombok Barat');
-define('DEFAULT_KECAMATAN', 'Labuapi');
-define('DEFAULT_DESA', 'Terong Tawah');
-define('DEFAULT_ALAMAT_DESA', 'Jl. TGH. Mansyur - Kode Pos 83361');
-define('DEFAULT_KEPALA_DESA', 'Muhammad Waris Zainal, S.Pd.');
+define('DEFAULT_KABUPATEN', 'Magelang');
+define('DEFAULT_KECAMATAN', 'Grabag');
+define('DEFAULT_DESA', 'Kleteran');
+define('DEFAULT_ALAMAT_DESA', 'Jl. Telaga Bleder Km.1 Grabag Magelang');
+define('DEFAULT_KEPALA_DESA', 'Muhammad Waris Zainal');
 
 // Default Values for Templates
 define('DEFAULT_WARGANEGARA', 'WNI');
 define('DEFAULT_KEPERLUAN', 'PERSYARATAN ADMINISTRASI');
-define('DEFAULT_PEKERJAAN', 'BURUH HARIAN LEPAS');
+define('DEFAULT_PEKERJAAN', 'WIRASWASTA');
 define('DEFAULT_JENIS_USAHA', 'PERDAGANGAN');
 define('DEFAULT_NAMA_KEGIATAN', 'HAJATAN PERNIKAHAN');
 define('DEFAULT_HARI_KEGIATAN', 'Minggu');

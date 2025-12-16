@@ -5,10 +5,10 @@
  */
 
 // Application Information
-define('APP_NAME', 'ABIS - Aplikasi Desa Digital');
+define('APP_NAME', 'Surat - In - Aplikasi Desa Digital');
 define('APP_VERSION', '1.0.0');
 define('APP_DESCRIPTION', 'Sistem pengelolaan surat menyurat desa secara digital');
-define('APP_AUTHOR', 'ABIS Development Team');
+define('APP_AUTHOR', 'Surat - In Development Team');
 
 // Base URL (adjust according to your setup)
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';

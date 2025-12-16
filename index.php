@@ -674,9 +674,13 @@ $router->add('GET', '/api/letter-types/:id/fields', function($params) {
         'SKU' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // Surat Keterangan Usaha
         'SKTM' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'penghasilan', 'keperluan'], // Surat Keterangan Tidak Mampu
         'IZU' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // Izin Usaha
-        'BR' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'sekolah', 'nis_nim', 'jurusan', 'semester', 'nama_beasiswa', 'nama_ayah', 'keperluan'], // Beasiswa Recommendation
+        'SRB' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'sekolah', 'nis_nim', 'jurusan', 'semester', 'nama_beasiswa', 'nama_ayah', 'keperluan'], // Surat Rekomendasi Beasiswa
         'SPN' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nik_pasangan', 'nama_pasangan', 'keperluan'], // Surat Pengantar Nikah
-        'IZK' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_kegiatan', 'tanggal_kegiatan', 'waktu_kegiatan', 'tempat_kegiatan', 'hiburan', 'keperluan'] // Izin Kegiatan
+        'IZK' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_kegiatan', 'tanggal_kegiatan', 'waktu_kegiatan', 'tempat_kegiatan', 'hiburan', 'keperluan'], // Izin Kegiatan
+        'SKBM' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'keperluan'], // Surat Keterangan Belum Menikah
+        'SK' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'keperluan'], // Surat Keterangan (umum)
+        'SIK' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_kegiatan', 'tanggal_kegiatan', 'waktu_kegiatan', 'tempat_kegiatan', 'hiburan', 'keperluan'], // Surat Izin Kegiatan (alias)
+        'SIU' => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'] // Surat Izin Usaha (alias)
     ];
 
     // Build response based on letter type
@@ -711,6 +715,45 @@ $router->add('GET', '/api/letter-types/:id/fields', function($params) {
     }
 
     echo json_encode($response);
+});
+
+// Route to serve template files (images for PDF generation)
+$router->add('GET', '/templates/:filename', function($params) {
+    $filename = $params['filename'];
+    $allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'svg'];
+
+    // Check if file extension is allowed
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    if (!in_array($extension, $allowedExtensions)) {
+        http_response_code(403);
+        echo 'Forbidden file type';
+        return;
+    }
+
+    $filePath = __DIR__ . '/templates/' . $filename;
+
+    // Check if file exists
+    if (!file_exists($filePath)) {
+        http_response_code(404);
+        echo 'File not found';
+        return;
+    }
+
+    // Set appropriate content type
+    $contentTypes = [
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'gif' => 'image/gif',
+        'svg' => 'image/svg+xml'
+    ];
+
+    $contentType = $contentTypes[$extension] ?? 'application/octet-stream';
+    header('Content-Type: ' . $contentType);
+    header('Cache-Control: public, max-age=31536000'); // Cache for 1 year
+
+    // Serve the file
+    readfile($filePath);
 });
 
 // Get current request method and URI

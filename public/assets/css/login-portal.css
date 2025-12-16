@@ -123,6 +123,31 @@ body {
     background: rgba(255, 255, 255, 0.3);
 }
 
+.logo-image {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.logo-image:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.logo-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+}
+
 .logo-text {
     font-size: 28px; /* Diperkecil */
     font-weight: 800;

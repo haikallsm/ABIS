@@ -254,8 +254,24 @@ class DynamicFormBuilder {
         if (!form) return;
 
         form.addEventListener('submit', (e) => {
+            // Prevent multiple submissions
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn && submitBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+
             if (!this.validateForm()) {
                 e.preventDefault();
+                // Show error message
+                this.showGlobalError('Mohon lengkapi semua field yang wajib diisi sebelum mengajukan surat.');
+                return;
+            }
+
+            // Disable submit button to prevent double submission
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengirim...';
             }
         });
 
@@ -272,15 +288,54 @@ class DynamicFormBuilder {
      */
     validateForm() {
         let isValid = true;
+        let firstInvalidField = null;
         const inputs = document.querySelectorAll(`${this.options.formSelector} input, ${this.options.formSelector} textarea, ${this.options.formSelector} select`);
 
         inputs.forEach(input => {
             if (!this.validateField(input)) {
                 isValid = false;
+                if (!firstInvalidField) {
+                    firstInvalidField = input;
+                }
             }
         });
 
+        // Focus on first invalid field
+        if (firstInvalidField && !isValid) {
+            firstInvalidField.focus();
+            firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
         return isValid;
+    }
+
+    /**
+     * Show global error message
+     */
+    showGlobalError(message) {
+        // Remove existing global error
+        const existingError = document.querySelector('.global-form-error');
+        if (existingError) {
+            existingError.remove();
+        }
+
+        // Create new error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'global-form-error bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6';
+        errorDiv.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+
+        // Insert at top of form
+        const form = document.querySelector(this.options.formSelector);
+        if (form) {
+            form.insertBefore(errorDiv, form.firstChild);
+            // Scroll to error
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 
     /**
@@ -296,8 +351,23 @@ class DynamicFormBuilder {
 
         // Required field validation
         if (input.required && !value) {
-            this.showFieldError(input, 'Field ini wajib diisi');
+            this.showFieldError(input, 'Field ini wajib diisi dan tidak boleh kosong');
             return false;
+        }
+
+        // Additional validation for specific field types
+        if (input.name === 'nik' && input.required && value) {
+            if (value.length !== 16 || !/^\d+$/.test(value)) {
+                this.showFieldError(input, 'NIK harus 16 digit angka');
+                return false;
+            }
+        }
+
+        if (input.name === 'nama' && input.required && value) {
+            if (value.length < 2) {
+                this.showFieldError(input, 'Nama harus minimal 2 karakter');
+                return false;
+            }
         }
 
         // Type-specific validation

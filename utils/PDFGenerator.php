@@ -21,12 +21,13 @@ class PDFGenerator {
 
         // Initialize DomPDF with options
         $options = new Options();
-        $options->set('isRemoteEnabled', false);
+        $options->set('isRemoteEnabled', true); // Enable image loading
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isPhpEnabled', true);
         $options->set('defaultFont', 'Arial');
         $options->set('defaultPaperSize', 'A4');
         $options->set('defaultPaperOrientation', 'portrait');
+        $options->set('chroot', __DIR__ . '/../'); // Allow access to project root
 
         $this->dompdf = new Dompdf($options);
     }

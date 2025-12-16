@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surat Keterangan Domisili</title>
     <style>
-        body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; }
+        body { font-family: 'Times New Roman', serif; font-size: 10pt; line-height: 1.3; }
 
         table { width: 100%; border-collapse: collapse; }
 
@@ -18,12 +18,12 @@
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
-        .kop-logo { width: 80px; text-align: center; }
+        .kop-logo { width: 120px; text-align: center; }
         .kop-text { text-align: center; }
-        .kop-text h1 { margin: 0; font-size: 14pt; font-weight: bold; text-transform: uppercase; }
-        .kop-text h2 { margin: 0; font-size: 16pt; font-weight: bold; text-transform: uppercase; }
-        .kop-text h3 { margin: 0; font-size: 18pt; font-weight: bold; text-transform: uppercase; }
-        .kop-text p { margin: 0; font-size: 10pt; font-style: italic; }
+        .kop-text h1 { margin: 0; font-size: 10pt; font-weight: bold; text-transform: uppercase; }
+        .kop-text h2 { margin: 0; font-size: 12pt; font-weight: bold; text-transform: uppercase; }
+        .kop-text h3 { margin: 0; font-size: 14pt; font-weight: bold; text-transform: uppercase; }
+        .kop-text p { margin: 0; font-size: 9pt; font-style: italic; }
     </style>
 </head>
 <body>
@@ -32,12 +32,12 @@
     <div class="kop-container">
         <table>
             <tr>
-                <td class="kop-logo"><img src="<?php echo __DIR__ . '/logo.png'; ?>" width="80" height="auto" alt="Logo"></td>
+                <td class="kop-logo"><img src="/templates/logo.png" width="120" height="auto" alt="Logo"></td>
                 <td class="kop-text">
-                    <h1>PEMERINTAH KABUPATEN <?= strtoupper($kabupaten ?? 'LOMBOK BARAT') ?></h1>
-                    <h2>KECAMATAN <?= strtoupper($kecamatan ?? 'LABUAPI') ?></h2>
-                    <h3>DESA <?= strtoupper($desa ?? 'TERONG TAWAH') ?></h3>
-                    <p><?= $alamat_desa ?? 'Jl. TGH. Mansyur - Kode Pos 83361' ?></p>
+                    <h1>PEMERINTAH KABUPATEN <?= strtoupper($kabupaten ?? 'Magelang') ?></h1>
+                    <h2>KECAMATAN <?= strtoupper($kecamatan ?? 'Grabag') ?></h2>
+                    <h3>DESA <?= strtoupper($desa ?? 'Kleteran') ?></h3>
+                    <p><?= $alamat_desa ?? 'Jl. Telaga Bleder Km.1 Grabag Magelang' ?></p>
                 </td>
             </tr>
         </table>
@@ -51,51 +51,47 @@
             <p style="margin: 0;">Nomor: <?= $letter_number ?? '...../...../...../.....' ?></p>
         </div>
 
-        <p>Yang bertanda tangan dibawah ini Kepala Desa <?= htmlspecialchars($desa ?? 'Terong Tawah') ?>, Kecamatan <?= htmlspecialchars($kecamatan ?? 'Labuapi') ?> menerangkan dengan sebenarnya, bahwa:</p>
+        <p>Yang bertanda tangan dibawah ini Kepala Desa <?= htmlspecialchars($desa ?? 'Kleteran') ?>, Kecamatan <?= htmlspecialchars($kecamatan ?? 'Grabag') ?>, Kabupaten <?= htmlspecialchars($kabupaten ?? 'Magelang') ?> memberikan <strong>KETERANGAN</strong> bahwa:</p>
 
         <table style="margin-left: 20px; width: 95%;">
             <tr>
-                <td width="180">Nama</td>
-                <td>: <?= strtoupper($nama ?? $full_name ?? $request['user_full_name'] ?? '') ?></td>
+                <td width="180">Nama Lengkap</td>
+                <td>: <strong><?= strtoupper($nama ?? '') ?></strong></td>
             </tr>
             <tr>
                 <td>NIK</td>
-                <td>: <?= $nik ?? $request['nik'] ?? '-' ?></td>
-            </tr>
-            <tr>
-                <td>Jenis Kelamin</td>
-                <td>: <?= strtoupper($jenis_kelamin ?? $gender ?? '-') ?></td>
+                <td>: <?= $nik ?? '' ?></td>
             </tr>
             <tr>
                 <td>Tempat, Tanggal Lahir</td>
-                <td>: <?= strtoupper($tempat_lahir ?? $birth_place ?? '-') ?>, <?= !empty($tanggal_lahir_formatted) ? $tanggal_lahir_formatted : (!empty($tanggal_lahir) ? date('d-m-Y', strtotime($tanggal_lahir)) : '-') ?></td>
+                <td>: <?= $tempat_lahir ?? '' ?>, <?= $tanggal_lahir ?? '' ?></td>
             </tr>
             <tr>
-                <td>Warganegara / Agama</td>
-                <td>: <?= strtoupper($warganegara ?? $nationality ?? 'WNI') ?> / <?= strtoupper($agama ?? $religion ?? '-') ?></td>
+                <td>Jenis Kelamin</td>
+                <td>: <?= $jenis_kelamin ?? '' ?></td>
+            </tr>
+            <tr>
+                <td>Agama</td>
+                <td>: <?= $agama ?? '' ?></td>
             </tr>
             <tr>
                 <td>Pekerjaan</td>
-                <td>: <?= strtoupper($pekerjaan ?? $occupation ?? '-') ?></td>
+                <td>: <?= strtoupper($pekerjaan ?? 'WIRASWASTA') ?></td>
             </tr>
             <tr>
-                <td>Alamat KTP</td>
-                <td>: <?= strtoupper($alamat ?? $address ?? $request['address'] ?? '') ?></td>
+                <td>Alamat</td>
+                <td>: <?= strtoupper($alamat ?? '') ?></td>
             </tr>
         </table>
 
-        <p>Nama tersebut diatas adalah benar-benar warga kami yang saat ini <strong>BERDOMISILI / BERTEMPAT TINGGAL</strong> di:</p>
+        <p>Benar mempunyai identitas seperti tersebut di atas dan bertempat tinggal di alamat tersebut di Desa <?= htmlspecialchars($desa ?? 'Kleteran') ?>, Kecamatan <?= htmlspecialchars($kecamatan ?? 'Grabag') ?>, Kabupaten <?= htmlspecialchars($kabupaten ?? 'Magelang') ?>.</p>
 
-        <table style="margin-left: 20px; width: 95%;">
-            <tr>
-                <td width="180" style="vertical-align: top;">Alamat Domisili</td>
-                <td style="font-weight: bold; vertical-align: top;">: <?= strtoupper($alamat_domisili ?? $alamat ?? $address ?? $request['address'] ?? '') ?></td>
-            </tr>
-        </table>
+        <p>Orang tersebut di atas adalah penduduk/warga Desa <?= htmlspecialchars($desa ?? 'Kleteran') ?> yang memiliki domisili tetap di alamat tersebut dan benar-benar memiliki hak dan kewajiban sebagai warga Desa <?= htmlspecialchars($desa ?? 'Kleteran') ?>.</p>
 
-        <p>Surat keterangan ini diberikan untuk keperluan: <strong><?= strtoupper($keperluan ?? $request['keperluan'] ?? 'PERSYARATAN ADMINISTRASI') ?></strong>.</p>
+        <p>Surat Keterangan Domisili ini dibuat atas permintaan yang bersangkutan untuk keperluan: <strong><?= $keperluan ?? 'Administrasi' ?></strong></p>
 
-        <p>Demikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.</p>
+        <p>Demikian Surat Keterangan Domisili ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.</p>
+
 
     </div>
 
@@ -109,7 +105,7 @@
     $tanggal_sekarang = date('d') . ' ' . $bulanIndo[(int)date('m')] . ' ' . date('Y');
 
     // Pastikan variabel $desa dan $kepala_desa tersedia
-    $desa = $desa ?? 'Terong Tawah';
+    $desa = $desa ?? 'Kleteran';
     $kepala_desa = $kepala_desa ?? 'Muhammad Waris Zainal, S.Pd.';
     ?>
 
@@ -127,16 +123,14 @@
 
                 <div style="margin-bottom: 30px; font-weight: bold;">
                     KEPALA DESA <?= strtoupper($desa) ?>
-                </div>
-
-                <div style="position: relative; width: 100%; height: 120px; margin-bottom: 20px;">
+                </div>                <div style="position: relative; width: 100%; height: 120px; margin-bottom: 20px;">
                     <!-- Tanda Tangan -->
                     <div style="position: absolute; left: 50%; top: 10px; transform: translateX(-50%); width: 150px; height: 60px;">
-                        <img src="<?php echo __DIR__ . '/ttd.png'; ?>" style="width: 100%; height: auto; opacity: 0.9;">
+                        <img src="/templates/ttd.png" style="width: 100%; height: auto; opacity: 0.9;">
                     </div>
 
                     <div style="position: absolute; left: 10px; top: -10px; width: 100px; height: 60px; opacity: 0.8;">
-                        <img src="<?php echo __DIR__ . '/stempel.png'; ?>" style="width: 100%; height: auto;">
+                        <img src="/templates/stempel.png" style="width: 100%; height: auto;">
                     </div>
 
                     <br><br><br>
@@ -153,3 +147,4 @@
 
 </body>
 </html>
+

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($title) ? $title . ' - ' : ''; ?>ABIS - Aplikasi Desa Digital</title>
+    <title><?php echo isset($title) ? $title . ' - ' : ''; ?>Surat - In - Aplikasi Desa Digital</title>
 
     <!-- Custom CSS -->
     <link href="<?php echo ASSETS_URL; ?>/css/style.css" rel="stylesheet">
