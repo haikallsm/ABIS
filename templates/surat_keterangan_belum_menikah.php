@@ -135,7 +135,11 @@
                     KEPALA DESA <?= strtoupper($desa) ?>
                 </div>
 
-                <div style="position: relative; width: 100%; height: 80px; margin-bottom: 20px;">
+                <div style="position: relative; width: 100%; height: 120px; margin-bottom: 20px;">
+                    <!-- Tanda Tangan -->
+                    <div style="position: absolute; left: 50%; top: 10px; transform: translateX(-50%); width: 150px; height: 60px;">
+                        <img src="<?php echo __DIR__ . '/ttd.png'; ?>" style="width: 100%; height: auto; opacity: 0.9;">
+                    </div>
 
                     <div style="position: absolute; left: 10px; top: -10px; width: 100px; height: 60px; opacity: 0.8;">
                         <img src="<?php echo __DIR__ . '/stempel.png'; ?>" style="width: 100%; height: auto;">
