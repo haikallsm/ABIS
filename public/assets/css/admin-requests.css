@@ -30,16 +30,17 @@
     color: #374151;
 }
 
-/* Action button icons */
+/* Action button icons - DISABLED TRANSITIONS TO PREVENT HIDING */
 .action-icon-btn {
     padding: 0.5rem;
     border-radius: 0.5rem;
     color: #ffffff;
-    transition: opacity 150ms ease;
+    transition: none !important; /* Disabled to prevent hiding */
+    animation: none !important; /* Disabled to prevent hiding */
 }
 
 .action-icon-btn:hover {
-    opacity: 0.8;
+    opacity: 1 !important; /* Force full opacity on hover */
 }
 
 /* Status select styling */

@@ -2,7 +2,7 @@
 // Set page metadata
 $title = 'Buat Permohonan Surat';
 $extra_css = [];
-$extra_js = ['create-request'];
+$extra_js = ['dynamic-form-builder'];
 ?>
 
 <div id="appLayout" class="flex min-h-screen">
@@ -119,31 +119,56 @@ $extra_js = ['create-request'];
                         </div>
                     <?php endif; ?>
 
-                    <form id="requestForm" method="POST" action="<?php echo BASE_URL; ?>/requests/create" class="space-y-6">
+                    <form id="letter-request-form" method="POST" action="<?php echo BASE_URL; ?>/requests/create" class="space-y-6">
                         <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
 
                         <!-- Letter Type Selection -->
-                        <div>
-                            <label for="letter_type_id" class="block text-sm font-medium text-gray-700 mb-2">
-                                Jenis Surat <span class="text-red-500">*</span>
-                            </label>
-                            <select id="letter_type_id" name="letter_type_id" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
-                                <option value="">Pilih jenis surat...</option>
-                                <?php foreach ($letterTypes as $letterType): ?>
-                                    <option value="<?php echo $letterType['id']; ?>" data-description="<?php echo htmlspecialchars($letterType['description']); ?>">
-                                        <?php echo htmlspecialchars($letterType['name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <p id="letterTypeDescription" class="mt-2 text-sm text-gray-500 hidden"></p>
+                        <div class="form-category mb-8 p-6 bg-white rounded-lg shadow-sm border">
+                            <div class="category-header mb-4">
+                                <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                                    <i class="fas fa-file-alt mr-2 text-blue-600"></i>
+                                    Pilih Jenis Surat
+                                </h3>
+                                <p class="text-sm text-gray-600 mt-1">Pilih jenis surat yang ingin Anda ajukan</p>
+                            </div>
+                            <div class="category-fields">
+                                <label for="letter_type_id" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Jenis Surat <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-file-contract text-gray-400"></i>
+                                    </div>
+                                    <select id="letter_type_id" name="letter_type_id" required
+                                            class="form-input w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+                                        <option value="">Pilih jenis surat...</option>
+                                        <?php foreach ($letterTypes as $letterType): ?>
+                                            <option value="<?php echo $letterType['id']; ?>"
+                                                    data-description="<?php echo htmlspecialchars($letterType['description']); ?>"
+                                                    data-code="<?php echo htmlspecialchars($letterType['code']); ?>">
+                                                <?php echo htmlspecialchars($letterType['name']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div id="letter-type-info" class="mt-3 p-3 bg-blue-50 rounded-lg hidden">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-info-circle text-blue-600 mt-0.5 mr-2"></i>
+                                        <div>
+                                            <p id="letter-type-description" class="text-sm text-blue-800"></p>
+                                            <p id="letter-type-code" class="text-xs text-blue-600 mt-1 font-mono"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Dynamic Fields Container -->
-                        <div id="dynamicFields" class="space-y-4 hidden">
-                            <div class="border-t pt-6">
-                                <h3 class="text-lg font-semibold text-dark mb-4">Data Permohonan</h3>
-                                <div id="fieldsContainer"></div>
+                        <!-- Dynamic Form Container -->
+                        <div id="dynamic-form-container" class="min-h-[200px]">
+                            <div class="text-center text-gray-500 py-8">
+                                <i class="fas fa-arrow-up text-4xl mb-4 text-gray-300"></i>
+                                <p class="text-lg font-medium">Pilih jenis surat terlebih dahulu</p>
+                                <p class="text-sm text-gray-400 mt-1">Formulir akan muncul setelah Anda memilih jenis surat</p>
                             </div>
                         </div>
 
@@ -175,4 +200,22 @@ $extra_js = ['create-request'];
 <script>
 // Make BASE_URL available to JavaScript
 const BASE_URL = '<?php echo BASE_URL; ?>';
+
+// Letter type change handler for description display
+document.getElementById('letter_type_id').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const description = selectedOption.getAttribute('data-description');
+    const code = selectedOption.getAttribute('data-code');
+    const infoDiv = document.getElementById('letter-type-info');
+    const descPara = document.getElementById('letter-type-description');
+    const codePara = document.getElementById('letter-type-code');
+
+    if (description) {
+        descPara.textContent = description;
+        codePara.textContent = `Kode: ${code}`;
+        infoDiv.classList.remove('hidden');
+    } else {
+        infoDiv.classList.add('hidden');
+    }
+});
 </script>

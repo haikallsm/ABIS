@@ -264,10 +264,10 @@ $extra_js = ['requests'];
 <!-- Request Detail Modal -->
 <div id="requestModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div class="p-6 border-b">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xl font-bold text-dark">Detail Permohonan</h3>
+                    <h3 class="text-xl font-bold text-dark">Detail Permohonan Surat</h3>
                     <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>

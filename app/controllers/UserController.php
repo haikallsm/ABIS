@@ -40,13 +40,14 @@ class UserController {
             [$userId]
         );
 
-        // Get all requests for history
+        // Get all requests for history (limit to prevent memory issues)
         $all_requests = fetchAll(
             "SELECT lr.*, lt.name as letter_type_name, lt.code as letter_type_code
              FROM letter_requests lr
              LEFT JOIN letter_types lt ON lr.letter_type_id = lt.id
              WHERE lr.user_id = ?
-             ORDER BY lr.created_at DESC",
+             ORDER BY lr.created_at DESC
+             LIMIT 50",
             [$userId]
         );
 
@@ -104,62 +105,107 @@ class UserController {
      * Process create request form
      */
     public function processCreateRequest() {
+        // Debug logging
+        error_log("UserController::processCreateRequest called");
+        error_log("REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD']);
+        error_log("Session data: " . json_encode($_SESSION ?? []));
+
         requireAuth('user');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            error_log("Invalid request method, redirecting to create form");
             header('Location: ' . BASE_URL . '/requests/create');
             exit;
         }
 
         $userId = getCurrentUserId();
+        error_log("Current user ID: " . $userId);
         $letterTypeId = (int) ($_POST['letter_type_id'] ?? 0);
+        error_log("Letter type ID: " . $letterTypeId);
 
         // Validate letter type
         $letterType = $this->letterTypeModel->findById($letterTypeId);
+        error_log("Letter type validation: " . ($letterType ? "FOUND - {$letterType['name']}" : "NOT FOUND"));
+
         if (!$letterType) {
+            error_log("Letter type validation failed, redirecting with error");
             $_SESSION['error'] = 'Jenis surat tidak valid';
             header('Location: ' . BASE_URL . '/requests/create');
             exit;
         }
 
-        // Get required fields
-        $requiredFields = $this->letterTypeModel->getRequiredFields($letterTypeId);
+        // Dynamic form validation - get required fields from API configuration
+        $requiredFields = $this->getRequiredFieldsForLetterType($letterTypeId);
 
-        // Get and validate form data
+        // Get and validate form data (dynamic form sends all fields)
         $requestData = [];
         $errors = [];
 
-        foreach ($requiredFields as $field => $label) {
+        error_log("POST data received: " . json_encode($_POST));
+
+        foreach ($requiredFields as $field => $config) {
             $value = sanitize($_POST[$field] ?? '');
-            if (empty($value)) {
-                $errors[$field] = "Field '{$label}' wajib diisi";
+
+            // Check if field is required
+            if ($config['required'] && empty($value)) {
+                $errors[$field] = "Field '{$config['label']}' wajib diisi";
             }
-            $requestData[$field] = $value;
+
+            // Only include non-empty values or required fields
+            if (!empty($value) || $config['required']) {
+                $requestData[$field] = $value;
+            }
+        }
+
+        // Additional validation for specific field types
+        foreach ($_POST as $field => $value) {
+            if ($field === 'letter_type_id' || $field === 'csrf_token') continue;
+
+            $value = sanitize($value);
+
+            // Email validation
+            if (strpos($field, 'email') !== false && !empty($value) && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                $errors[$field] = 'Format email tidak valid';
+            }
+
+            // Numeric validation
+            if (in_array($field, ['nik', 'nis_nim', 'semester']) && !empty($value) && !is_numeric($value)) {
+                $errors[$field] = 'Field ini harus berupa angka';
+            }
+
+            // NIK length validation
+            if ($field === 'nik' && !empty($value) && strlen($value) !== 16) {
+                $errors[$field] = 'NIK harus 16 digit';
+            }
         }
 
         if (!empty($errors)) {
+            error_log("Validation errors: " . json_encode($errors));
             $this->renderView('user/create_request', [
                 'title' => 'Buat Permohonan Surat - ' . APP_NAME,
                 'letterTypes' => $this->letterTypeModel->getAllActive(),
                 'errors' => $errors,
-                'old' => array_merge(['letter_type_id' => $letterTypeId], $requestData)
+                'old' => array_merge(['letter_type_id' => $letterTypeId], $_POST)
             ]);
             return;
         }
 
-        // Create request
-        $requestData = [
+        // Create request using enhanced data separation
+        $formData = array_merge([
             'user_id' => $userId,
-            'letter_type_id' => $letterTypeId,
-            'request_data' => json_encode($requestData)
-        ];
+            'letter_type_id' => $letterTypeId
+        ], $requestData);
 
-        if ($this->requestModel->create($requestData)) {
+        error_log("Attempting to create request with form data: " . json_encode($formData));
+
+        if ($this->requestModel->createWithDataSeparation($formData)) {
+            error_log("Request created successfully");
             $_SESSION['success'] = SUCCESS_REQUEST_CREATED;
             header('Location: ' . BASE_URL . '/dashboard');
             exit;
         } else {
-            $_SESSION['error'] = 'Terjadi kesalahan saat membuat permohonan';
+            error_log("Request creation failed - check database connection and constraints");
+            $_SESSION['error'] = 'Terjadi kesalahan saat membuat permohonan. Silakan coba lagi.';
             header('Location: ' . BASE_URL . '/requests/create');
             exit;
         }
@@ -279,12 +325,20 @@ class UserController {
      * @param array $data
      */
     private function renderView($view, $data = []) {
+        // Debug: Log data being passed to view
+        error_log("UserController::renderView - Data for {$view}: " . json_encode(array_keys($data)));
+
         // Extract data to make variables available in view
         extract($data);
 
         // Start output buffering to capture view content
         ob_start();
-        include VIEWS_DIR . '/' . $view . '.php';
+        $viewPath = VIEWS_DIR . '/' . $view . '.php';
+        if (!file_exists($viewPath)) {
+            error_log("UserController::renderView - View file not found: {$viewPath}");
+            die("View file not found: {$view}");
+        }
+        include $viewPath;
         $content = ob_get_clean();
 
         // Include layout
@@ -302,7 +356,7 @@ class UserController {
 
         if (!$user) {
             $_SESSION['error'] = 'User tidak ditemukan.';
-            header('Location: ' . BASE_URL . '/user/dashboard');
+            header('Location: ' . BASE_URL . '/dashboard');
             exit;
         }
 
@@ -335,13 +389,13 @@ class UserController {
         // Validation
         if (empty($data['nik']) || empty($data['full_name'])) {
             $_SESSION['error'] = 'NIK dan Nama Lengkap harus diisi.';
-            header('Location: ' . BASE_URL . '/user/profile');
+            header('Location: ' . BASE_URL . '/profile');
             exit;
         }
 
         if (!is_numeric($data['nik']) || strlen($data['nik']) !== 16) {
             $_SESSION['error'] = 'NIK harus berupa 16 digit angka.';
-            header('Location: ' . BASE_URL . '/user/profile');
+            header('Location: ' . BASE_URL . '/profile');
             exit;
         }
 
@@ -353,7 +407,139 @@ class UserController {
             $_SESSION['error'] = 'Gagal memperbarui profile.';
         }
 
-        header('Location: ' . BASE_URL . '/user/profile');
+        header('Location: ' . BASE_URL . '/profile');
         exit;
+    }
+
+    /**
+     * Update user's Telegram Chat ID
+     */
+    public function updateTelegramChatId() {
+        requireAuth('user');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . '/dashboard');
+            exit;
+        }
+
+        $chatId = sanitize($_POST['telegram_chat_id'] ?? '');
+        $userId = getCurrentUserId();
+
+        if (empty($chatId)) {
+            $_SESSION['error'] = 'Chat ID Telegram tidak boleh kosong.';
+            header('Location: ' . BASE_URL . '/dashboard');
+            exit;
+        }
+
+        // Validate Chat ID format (should be numeric)
+        if (!is_numeric($chatId)) {
+            $_SESSION['error'] = 'Chat ID Telegram harus berupa angka.';
+            header('Location: ' . BASE_URL . '/dashboard');
+            exit;
+        }
+
+        // Update user's telegram_chat_id
+        $result = $this->userModel->update($userId, ['telegram_chat_id' => $chatId]);
+
+        if ($result) {
+            $_SESSION['success'] = 'Chat ID Telegram berhasil diperbarui. Anda akan menerima notifikasi via Telegram.';
+
+            // Test the connection by sending a welcome message
+            try {
+                require_once 'utils/TelegramBot.php';
+                $telegramBot = new TelegramBot();
+                $telegramBot->sendMessage($chatId, "🎉 Akun Telegram Anda berhasil terhubung!\n\nAnda akan menerima notifikasi ketika status permohonan surat Anda berubah.");
+            } catch (Exception $e) {
+                // Don't show error if bot is not configured, just silently fail
+                error_log('Telegram bot test message failed: ' . $e->getMessage());
+            }
+        } else {
+            $_SESSION['error'] = 'Gagal memperbarui Chat ID Telegram.';
+        }
+
+        header('Location: ' . BASE_URL . '/dashboard');
+        exit;
+    }
+
+    /**
+     * Get required fields configuration for a letter type (Dynamic Form Support)
+     * @param int $letterTypeId
+     * @return array
+     */
+    private function getRequiredFieldsForLetterType($letterTypeId) {
+        // Define field configurations based on letter type
+        $fieldConfigs = [
+            // Basic profile fields (auto-filled, not required for form submission)
+            'profile' => [
+                'nama' => ['label' => 'Nama Lengkap', 'type' => 'text', 'required' => false, 'readonly' => true],
+                'nik' => ['label' => 'NIK', 'type' => 'text', 'required' => false, 'readonly' => true],
+                'alamat' => ['label' => 'Alamat', 'type' => 'textarea', 'required' => false, 'readonly' => true],
+                'jenis_kelamin' => ['label' => 'Jenis Kelamin', 'type' => 'select', 'required' => false, 'readonly' => true],
+                'tempat_lahir' => ['label' => 'Tempat Lahir', 'type' => 'text', 'required' => false, 'readonly' => true],
+                'tanggal_lahir' => ['label' => 'Tanggal Lahir', 'type' => 'date', 'required' => false, 'readonly' => true],
+                'agama' => ['label' => 'Agama', 'type' => 'select', 'required' => false, 'readonly' => true],
+                'pekerjaan' => ['label' => 'Pekerjaan', 'type' => 'text', 'required' => false, 'readonly' => true]
+            ],
+
+            // Required fields based on letter type
+            'required' => [
+                'keperluan' => ['label' => 'Keperluan', 'type' => 'textarea', 'required' => true],
+                'alamat_domisili' => ['label' => 'Alamat Domisili', 'type' => 'textarea', 'required' => true],
+
+                // Business fields
+                'nama_usaha' => ['label' => 'Nama Usaha', 'type' => 'text', 'required' => true],
+                'jenis_usaha' => ['label' => 'Jenis Usaha', 'type' => 'text', 'required' => true],
+                'alamat_usaha' => ['label' => 'Alamat Usaha', 'type' => 'textarea', 'required' => true],
+
+                // Education fields
+                'sekolah' => ['label' => 'Asal Sekolah/Kampus', 'type' => 'text', 'required' => true],
+                'nis_nim' => ['label' => 'NIS/NIM', 'type' => 'text', 'required' => true],
+                'jurusan' => ['label' => 'Jurusan/Program Studi', 'type' => 'text', 'required' => true],
+                'semester' => ['label' => 'Semester', 'type' => 'number', 'required' => true],
+                'nama_beasiswa' => ['label' => 'Nama Beasiswa', 'type' => 'text', 'required' => true],
+                'nama_ayah' => ['label' => 'Nama Ayah/Wali', 'type' => 'text', 'required' => true],
+
+                // Family fields
+                'nik_pasangan' => ['label' => 'NIK Pasangan', 'type' => 'text', 'required' => true],
+                'nama_pasangan' => ['label' => 'Nama Pasangan', 'type' => 'text', 'required' => true],
+
+                // Event fields
+                'nama_kegiatan' => ['label' => 'Nama Kegiatan', 'type' => 'text', 'required' => true],
+                'tanggal_kegiatan' => ['label' => 'Tanggal Kegiatan', 'type' => 'date', 'required' => true],
+                'waktu_kegiatan' => ['label' => 'Waktu Kegiatan', 'type' => 'text', 'required' => true],
+                'tempat_kegiatan' => ['label' => 'Tempat Kegiatan', 'type' => 'textarea', 'required' => true],
+                'hiburan' => ['label' => 'Hiburan/Entertainment', 'type' => 'text', 'required' => true],
+
+                // Financial fields
+                'penghasilan' => ['label' => 'Penghasilan', 'type' => 'number', 'required' => true]
+            ]
+        ];
+
+        // Map letter type IDs to their required fields
+        $letterTypeFieldMap = [
+            1 => ['keperluan', 'alamat_domisili'], // SKD - Surat Keterangan Domisili
+            2 => ['nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // SKU - Surat Keterangan Usaha
+            3 => ['nik_pasangan', 'nama_pasangan', 'keperluan'], // SPN - Surat Pengantar Nikah
+            4 => ['pekerjaan', 'penghasilan', 'keperluan'], // SKTM - Surat Keterangan Tidak Mampu
+            // Add more letter types as needed
+        ];
+
+        $result = [];
+
+        // Add profile fields (these are auto-filled, not required for validation)
+        foreach ($fieldConfigs['profile'] as $fieldName => $config) {
+            $result[$fieldName] = $config;
+        }
+
+        // Add required fields based on letter type
+        if (isset($letterTypeFieldMap[$letterTypeId])) {
+            foreach ($letterTypeFieldMap[$letterTypeId] as $fieldName) {
+                if (isset($fieldConfigs['required'][$fieldName])) {
+                    $result[$fieldName] = $fieldConfigs['required'][$fieldName];
+                }
+            }
+        }
+
+        return $result;
     }
 }

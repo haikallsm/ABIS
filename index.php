@@ -101,12 +101,18 @@ require_once CONTROLLERS_DIR . '/HomeController.php';
 require_once CONTROLLERS_DIR . '/AuthController.php';
 require_once CONTROLLERS_DIR . '/UserController.php';
 require_once CONTROLLERS_DIR . '/AdminController.php';
+require_once CONTROLLERS_DIR . '/admin/DashboardController.php';
+require_once CONTROLLERS_DIR . '/admin/LetterRequestController.php';
+require_once CONTROLLERS_DIR . '/admin/SettingsController.php';
 
 // Create controller instances
 $homeController = new HomeController();
 $authController = new AuthController();
 $userController = new UserController();
 $adminController = new AdminController();
+$dashboardController = new DashboardController();
+$letterRequestController = new LetterRequestController();
+$settingsController = new SettingsController();
 
 // Home route
 $router->add('GET', '/', function() {
@@ -179,6 +185,12 @@ $router->add('POST', '/requests/create', function() {
     global $userController;
     requireAuth('user');
     $userController->processCreateRequest();
+});
+
+// Test user status page
+$router->add('GET', '/test-status', function() {
+    include 'test_user_status.php';
+    exit;
 });
 
 $router->add('GET', '/requests/:id', function($params) {
@@ -266,18 +278,6 @@ $router->add('GET', '/admin/requests', function() {
     $adminController->requests();
 });
 
-$router->add('POST', '/admin/requests/:id/approve', function($params) {
-    global $adminController;
-    requireAuth('admin');
-    $adminController->approveRequest($params['id']);
-});
-
-$router->add('POST', '/admin/requests/:id/reject', function($params) {
-    global $adminController;
-    requireAuth('admin');
-    $adminController->rejectRequest($params['id']);
-});
-
 $router->add('GET', '/admin/requests/:id/download', function($params) {
     global $adminController;
     requireAuth('admin');
@@ -321,36 +321,110 @@ $router->add('GET', '/admin/letter-requests', function() {
     $adminController->letterRequests();
 });
 
-// Letter types management
-$router->add('GET', '/admin/letter-types', function() {
-    global $adminController;
-    requireAuth('admin');
-    $adminController->letterTypes();
-});
-
-$router->add('POST', '/admin/letter-types', function() {
-    global $adminController;
-    requireAuth('admin');
-    $adminController->createLetterType();
-});
-
-$router->add('POST', '/admin/letter-types/:id', function($params) {
-    global $adminController;
-    requireAuth('admin');
-    $adminController->updateLetterType($params['id']);
-});
-
-$router->add('POST', '/admin/letter-types/:id/toggle', function($params) {
-    global $adminController;
-    requireAuth('admin');
-    $adminController->toggleLetterTypeStatus($params['id']);
-});
-
 // Export Excel route
 $router->add('GET', '/admin/export/excel', function() {
     global $adminController;
     requireAuth('admin');
     $adminController->exportExcel();
+});
+
+// API route for export data
+$router->add('GET', '/admin/api/export-data', function() {
+    global $adminController;
+    requireAuth('admin');
+    $adminController->getExportData();
+});
+
+// Telegram Bot Settings
+$router->add('GET', '/admin/telegram-settings', function() {
+    global $adminController;
+    $adminController->telegramSettings();
+});
+
+$router->add('POST', '/admin/telegram-settings', function() {
+    global $adminController;
+    $adminController->telegramSettings();
+});
+
+// User Telegram Chat ID Update
+$router->add('POST', '/telegram/update-chat-id', function() {
+    global $userController;
+    requireAuth('user');
+    $userController->updateTelegramChatId();
+});
+
+// Telegram Webhook
+$router->add('POST', '/telegram/webhook', function() {
+    require_once 'telegram_webhook.php';
+});
+
+// Cetak Surat dari Database
+$router->add('GET', '/cetak-surat', function() {
+    require_once 'public/cetak-surat.php';
+});
+
+// New Refactored Admin Routes
+// Dashboard
+$router->add('GET', '/admin/dashboard', function() {
+    global $dashboardController;
+    requireAuth('admin');
+    $dashboardController->index();
+});
+
+$router->add('GET', '/admin/dashboard/stats', function() {
+    global $dashboardController;
+    requireAuth('admin');
+    $dashboardController->getStats();
+});
+
+// Letter Requests
+$router->add('GET', '/admin/requests', function() {
+    global $letterRequestController;
+    requireAuth('admin');
+    $letterRequestController->index();
+});
+
+$router->add('GET', '/admin/requests/:id', function($params) {
+    global $letterRequestController;
+    requireAuth('admin');
+    $letterRequestController->show($params['id']);
+});
+
+$router->add('POST', '/admin/requests/:id/approve', function($params) {
+    global $letterRequestController;
+    requireAuth('admin');
+    $letterRequestController->approve($params['id']);
+});
+
+$router->add('POST', '/admin/requests/:id/reject', function($params) {
+    global $letterRequestController;
+    requireAuth('admin');
+    $letterRequestController->reject($params['id']);
+});
+
+$router->add('GET', '/admin/requests/:id/download', function($params) {
+    global $letterRequestController;
+    requireAuth('admin');
+    $letterRequestController->download($params['id']);
+});
+
+$router->add('POST', '/admin/requests/:id/delete', function($params) {
+    global $letterRequestController;
+    requireAuth('admin');
+    $letterRequestController->delete($params['id']);
+});
+
+// Settings
+$router->add('GET', '/admin/settings/telegram', function() {
+    global $settingsController;
+    requireAuth('admin');
+    $settingsController->telegram();
+});
+
+$router->add('POST', '/admin/settings/telegram', function() {
+    global $settingsController;
+    requireAuth('admin');
+    $settingsController->telegram();
 });
 
 // API routes for AJAX requests
@@ -361,6 +435,177 @@ $router->add('GET', '/api/letter-types', function() {
     echo json_encode($letterTypes);
 });
 
+// API endpoint for request details (used by user requests page)
+$router->add('GET', '/api/requests/:id', function($params) {
+    requireAuth();
+    header('Content-Type: application/json');
+
+    try {
+        $requestId = (int) $params['id'];
+        $userId = getCurrentUserId();
+
+        // Get request details
+        $letterRequestModel = new LetterRequest();
+        $request = $letterRequestModel->findById($requestId);
+
+        if (!$request) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Permohonan tidak ditemukan']);
+            return;
+        }
+
+        // Check if user owns this request
+        if ($request['user_id'] != $userId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Akses ditolak']);
+            return;
+        }
+
+        // Get letter type info
+        $letterTypeModel = new LetterType();
+        $letterType = $letterTypeModel->findById($request['letter_type_id']);
+
+        // Get user info
+        $userModel = new User();
+        $user = $userModel->findById($request['user_id']);
+
+        // Prepare response data
+        $responseData = [
+            'id' => $request['id'],
+            'status' => $request['status'],
+            'created_at' => $request['created_at'],
+            'approved_at' => $request['approved_at'],
+            'letter_type_name' => $letterType ? $letterType['name'] : 'Tidak diketahui',
+            'user_full_name' => $user ? $user['full_name'] : 'Tidak diketahui',
+            'user_nik' => $user ? $user['nik'] : '',
+            'user_email' => $user ? $user['email'] : '',
+            'request_data' => $request['request_data'],
+            'admin_notes' => $request['admin_notes'],
+            'generated_file' => $request['generated_file']
+        ];
+
+        echo json_encode(['success' => true, 'request' => $responseData]);
+
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Terjadi kesalahan server']);
+    }
+});
+
+// API endpoint for PDF preview
+$router->add('GET', '/api/requests/:id/preview', function($params) {
+    requireAuth();
+
+    try {
+        $requestId = (int) $params['id'];
+        $userId = getCurrentUserId();
+
+        // Get request details
+        $letterRequestModel = new LetterRequest();
+        $request = $letterRequestModel->findById($requestId);
+
+        if (!$request) {
+            http_response_code(404);
+            die('Permohonan tidak ditemukan');
+        }
+
+        // Check if user owns this request
+        if ($request['user_id'] != $userId) {
+            http_response_code(403);
+            die('Akses ditolak');
+        }
+
+        // Check if request is approved and has generated file
+        if ($request['status'] !== STATUS_APPROVED || empty($request['generated_file'])) {
+            http_response_code(404);
+            die('PDF belum tersedia');
+        }
+
+        // Get PDF file path
+        $letterService = new LetterService();
+        $filePath = $letterService->getLetterFilePath($requestId);
+
+        if (!$filePath || !file_exists($filePath)) {
+            http_response_code(404);
+            die('File PDF tidak ditemukan');
+        }
+
+        // Set headers for PDF display
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . basename($filePath) . '"');
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: public');
+
+        // Output file
+        readfile($filePath);
+        exit;
+
+    } catch (Exception $e) {
+        http_response_code(500);
+        die('Terjadi kesalahan server');
+    }
+});
+
+// API endpoint for request download
+$router->add('GET', '/api/requests/:id/download', function($params) {
+    requireAuth();
+
+    try {
+        $requestId = (int) $params['id'];
+        $userId = getCurrentUserId();
+
+        // Get request details
+        $letterRequestModel = new LetterRequest();
+        $request = $letterRequestModel->findById($requestId);
+
+        if (!$request) {
+            http_response_code(404);
+            die('Permohonan tidak ditemukan');
+        }
+
+        // Check if user owns this request
+        if ($request['user_id'] != $userId) {
+            http_response_code(403);
+            die('Akses ditolak');
+        }
+
+        // Check if request is approved and has generated file
+        if ($request['status'] !== STATUS_APPROVED || empty($request['generated_file'])) {
+            http_response_code(404);
+            die('PDF belum tersedia');
+        }
+
+        // Get PDF file path
+        $letterService = new LetterService();
+        $filePath = $letterService->getLetterFilePath($requestId);
+
+        if (!$filePath || !file_exists($filePath)) {
+            http_response_code(404);
+            die('File PDF tidak ditemukan');
+        }
+
+        // Set headers for download
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="surat_' . $requestId . '.pdf"');
+        header('Content-Length: ' . filesize($filePath));
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: public');
+
+        // Clear output buffer
+        if (ob_get_level()) {
+            ob_clean();
+        }
+
+        // Output file
+        readfile($filePath);
+        exit;
+
+    } catch (Exception $e) {
+        http_response_code(500);
+        die('Terjadi kesalahan server');
+    }
+});
+
 $router->add('GET', '/api/letter-types/:id/fields', function($params) {
     requireAuth();
     header('Content-Type: application/json');
@@ -368,20 +613,122 @@ $router->add('GET', '/api/letter-types/:id/fields', function($params) {
     $letterTypeId = (int) $params['id'];
     $letterTypeModel = new LetterType();
 
-    // Get required fields for this letter type
-    $requiredFields = $letterTypeModel->getRequiredFields($letterTypeId);
-
-    $fields = [];
-    foreach ($requiredFields as $name => $label) {
-        $fields[] = [
-            'name' => $name,
-            'label' => $label,
-            'required' => true,
-            'placeholder' => "Masukkan {$label}"
-        ];
+    // Get letter type details
+    $letterType = $letterTypeModel->findById($letterTypeId);
+    if (!$letterType) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Letter type not found']);
+        return;
     }
 
-    echo json_encode(['fields' => $fields]);
+    // Get required fields configuration
+    $requiredFields = $letterTypeModel->getRequiredFields($letterTypeId);
+
+    // Define field categories and their properties
+    $fieldCategories = [
+        // Profile-based fields (auto-fill from user data)
+        'profile' => [
+            'nama' => ['label' => 'Nama Lengkap', 'type' => 'text', 'readonly' => true, 'icon' => 'user'],
+            'nik' => ['label' => 'NIK', 'type' => 'text', 'readonly' => true, 'icon' => 'id-card'],
+            'alamat' => ['label' => 'Alamat', 'type' => 'textarea', 'readonly' => true, 'icon' => 'map-marker'],
+            'jenis_kelamin' => ['label' => 'Jenis Kelamin', 'type' => 'select', 'readonly' => true, 'options' => ['Laki-laki', 'Perempuan'], 'icon' => 'venus-mars'],
+            'tempat_lahir' => ['label' => 'Tempat Lahir', 'type' => 'text', 'readonly' => true, 'icon' => 'map'],
+            'tanggal_lahir' => ['label' => 'Tanggal Lahir', 'type' => 'date', 'readonly' => true, 'icon' => 'calendar'],
+            'agama' => ['label' => 'Agama', 'type' => 'select', 'readonly' => true, 'options' => ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'], 'icon' => 'pray'],
+            'pekerjaan' => ['label' => 'Pekerjaan', 'type' => 'text', 'readonly' => true, 'icon' => 'briefcase']
+        ],
+
+        // Required fields based on letter type
+        'required' => [
+            'keperluan' => ['label' => 'Keperluan', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Jelaskan keperluan pembuatan surat', 'icon' => 'clipboard-list'],
+            'alamat_domisili' => ['label' => 'Alamat Domisili', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Alamat domisili saat ini', 'icon' => 'home'],
+
+            // Business fields
+            'nama_usaha' => ['label' => 'Nama Usaha', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama usaha atau bisnis', 'icon' => 'building'],
+            'jenis_usaha' => ['label' => 'Jenis Usaha', 'type' => 'text', 'required' => true, 'placeholder' => 'Jenis kegiatan usaha', 'icon' => 'industry'],
+            'alamat_usaha' => ['label' => 'Alamat Usaha', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Lokasi usaha', 'icon' => 'map-marker'],
+
+            // Education fields
+            'sekolah' => ['label' => 'Asal Sekolah/Kampus', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama sekolah atau universitas', 'icon' => 'school'],
+            'nis_nim' => ['label' => 'NIS/NIM', 'type' => 'text', 'required' => true, 'placeholder' => 'Nomor Induk Siswa/Mahasiswa', 'icon' => 'graduation-cap'],
+            'jurusan' => ['label' => 'Jurusan/Program Studi', 'type' => 'text', 'required' => true, 'placeholder' => 'Jurusan atau program studi', 'icon' => 'book'],
+            'semester' => ['label' => 'Semester', 'type' => 'number', 'required' => true, 'placeholder' => 'Semester saat ini', 'icon' => 'clock', 'min' => 1, 'max' => 14],
+            'nama_beasiswa' => ['label' => 'Nama Beasiswa', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama program beasiswa', 'icon' => 'trophy'],
+            'nama_ayah' => ['label' => 'Nama Ayah/Wali', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama lengkap ayah atau wali', 'icon' => 'user-father'],
+
+            // Family fields
+            'nik_pasangan' => ['label' => 'NIK Pasangan', 'type' => 'text', 'required' => true, 'placeholder' => 'NIK calon pasangan', 'icon' => 'heart'],
+            'nama_pasangan' => ['label' => 'Nama Pasangan', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama lengkap calon pasangan', 'icon' => 'user'],
+
+            // Event fields
+            'nama_kegiatan' => ['label' => 'Nama Kegiatan', 'type' => 'text', 'required' => true, 'placeholder' => 'Nama acara atau kegiatan', 'icon' => 'calendar-event'],
+            'tanggal_kegiatan' => ['label' => 'Tanggal Kegiatan', 'type' => 'date', 'required' => true, 'icon' => 'calendar-day'],
+            'waktu_kegiatan' => ['label' => 'Waktu Kegiatan', 'type' => 'text', 'required' => true, 'placeholder' => 'Waktu pelaksanaan', 'icon' => 'clock'],
+            'tempat_kegiatan' => ['label' => 'Tempat Kegiatan', 'type' => 'textarea', 'required' => true, 'placeholder' => 'Lokasi kegiatan', 'icon' => 'map-marker'],
+            'hiburan' => ['label' => 'Hiburan/Entertainment', 'type' => 'text', 'required' => true, 'placeholder' => 'Jenis hiburan (jika ada)', 'icon' => 'music'],
+
+            // Financial fields
+            'penghasilan' => ['label' => 'Penghasilan', 'type' => 'number', 'required' => true, 'placeholder' => 'Penghasilan per bulan (Rp)', 'icon' => 'money-bill', 'min' => 0]
+        ]
+    ];
+
+    // Build response based on letter type
+    $response = [
+        'letter_type' => [
+            'id' => $letterType['id'],
+            'name' => $letterType['name'],
+            'code' => $letterType['code'],
+            'description' => $letterType['description']
+        ],
+        'field_categories' => []
+    ];
+
+    // Add profile fields (always available for auto-fill)
+    $response['field_categories']['profile'] = [
+        'title' => 'Data dari Profile',
+        'description' => 'Data ini akan diisi otomatis dari profil Anda',
+        'icon' => 'user-circle',
+        'fields' => []
+    ];
+
+    foreach ($fieldCategories['profile'] as $fieldName => $config) {
+        $response['field_categories']['profile']['fields'][] = array_merge($config, [
+            'name' => $fieldName,
+            'category' => 'profile'
+        ]);
+    }
+
+    // Add required fields based on letter type configuration
+    $response['field_categories']['required'] = [
+        'title' => 'Data Wajib Diisi',
+        'description' => 'Data khusus untuk jenis surat ini',
+        'icon' => 'exclamation-triangle',
+        'fields' => []
+    ];
+
+    // Map letter type codes to their required fields
+    $letterTypeFieldMap = [
+        'SKD' => ['keperluan', 'alamat_domisili'], // Surat Keterangan Domisili
+        'SKU' => ['nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // Surat Keterangan Usaha
+        'SKTM' => ['pekerjaan', 'penghasilan', 'keperluan'], // Surat Keterangan Tidak Mampu
+        'IZU' => ['nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // Izin Usaha (same as SKU)
+        'BR' => ['sekolah', 'nis_nim', 'jurusan', 'semester', 'nama_beasiswa', 'nama_ayah', 'keperluan'], // Beasiswa Recommendation
+        'SPN' => ['nik_pasangan', 'nama_pasangan', 'keperluan'], // Surat Pengantar Nikah
+        'IZK' => ['nama_kegiatan', 'tanggal_kegiatan', 'waktu_kegiatan', 'tempat_kegiatan', 'hiburan', 'keperluan'] // Izin Kegiatan
+    ];
+
+    $requiredFieldNames = $letterTypeFieldMap[$letterType['code']] ?? [];
+
+    foreach ($requiredFieldNames as $fieldName) {
+        if (isset($fieldCategories['required'][$fieldName])) {
+            $response['field_categories']['required']['fields'][] = array_merge(
+                $fieldCategories['required'][$fieldName],
+                ['name' => $fieldName, 'category' => 'required']
+            );
+        }
+    }
+
+    echo json_encode($response);
 });
 
 // Get current request method and URI

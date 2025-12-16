@@ -56,31 +56,31 @@
         <table style="margin-left: 20px; width: 95%;">
             <tr>
                 <td width="180">Nama</td>
-                <td>: <?= strtoupper($request['user_full_name'] ?? '') ?></td>
+                <td>: <?= strtoupper($nama ?? $full_name ?? $request['user_full_name'] ?? '') ?></td>
             </tr>
             <tr>
                 <td>NIK</td>
-                <td>: <?= $request['nik'] ?? '' ?></td>
+                <td>: <?= $nik ?? $request['nik'] ?? '-' ?></td>
             </tr>
             <tr>
                 <td>Jenis Kelamin</td>
-                <td>: <?= strtoupper($request['gender'] ?? '') ?></td>
+                <td>: <?= strtoupper($jenis_kelamin ?? $gender ?? '-') ?></td>
             </tr>
             <tr>
                 <td>Tempat, Tanggal Lahir</td>
-                <td>: <?= strtoupper($request['birth_place'] ?? '') ?>, <?= $request['birth_date'] ?? '' ?></td>
+                <td>: <?= strtoupper($tempat_lahir ?? $birth_place ?? '-') ?>, <?= !empty($tanggal_lahir_formatted) ? $tanggal_lahir_formatted : (!empty($tanggal_lahir) ? date('d-m-Y', strtotime($tanggal_lahir)) : '-') ?></td>
             </tr>
             <tr>
                 <td>Warganegara / Agama</td>
-                <td>: <?= strtoupper($request['warganegara'] ?? 'WNI') ?> / <?= strtoupper($request['religion'] ?? '') ?></td>
+                <td>: <?= strtoupper($warganegara ?? $nationality ?? 'WNI') ?> / <?= strtoupper($agama ?? $religion ?? '-') ?></td>
             </tr>
             <tr>
                 <td>Pekerjaan</td>
-                <td>: <?= strtoupper($request['occupation'] ?? '-') ?></td>
+                <td>: <?= strtoupper($pekerjaan ?? $occupation ?? '-') ?></td>
             </tr>
             <tr>
                 <td>Alamat KTP</td>
-                <td>: <?= strtoupper($request['address'] ?? '') ?></td>
+                <td>: <?= strtoupper($alamat ?? $address ?? $request['address'] ?? '') ?></td>
             </tr>
         </table>
 
@@ -89,11 +89,11 @@
         <table style="margin-left: 20px; width: 95%;">
             <tr>
                 <td width="180" style="vertical-align: top;">Alamat Domisili</td>
-                <td style="font-weight: bold; vertical-align: top;">: <?= strtoupper($alamat_domisili ?? $request['address'] ?? '') ?></td>
+                <td style="font-weight: bold; vertical-align: top;">: <?= strtoupper($alamat_domisili ?? $alamat ?? $address ?? $request['address'] ?? '') ?></td>
             </tr>
         </table>
 
-        <p>Surat keterangan ini diberikan untuk keperluan: <strong><?= strtoupper($keperluan ?? 'PERSYARATAN ADMINISTRASI') ?></strong>.</p>
+        <p>Surat keterangan ini diberikan untuk keperluan: <strong><?= strtoupper($keperluan ?? $request['keperluan'] ?? 'PERSYARATAN ADMINISTRASI') ?></strong>.</p>
 
         <p>Demikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.</p>
 

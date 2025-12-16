@@ -14,7 +14,7 @@ class User {
      */
     public function findById($id) {
         return fetchOne(
-            "SELECT id, username, email, password, full_name, nik, birth_place, birth_date, gender, phone, address, occupation, religion, marital_status, role, created_at, updated_at, is_active
+            "SELECT id, username, email, password, full_name, nik, birth_place, birth_date, gender, phone, address, occupation, religion, marital_status, role, created_at, updated_at, is_active, telegram_chat_id
              FROM {$this->table}
              WHERE id = ? AND is_active = 1",
             [$id]
@@ -45,6 +45,20 @@ class User {
                 [$username]
             );
         }
+    }
+
+    /**
+     * Find user by Telegram Chat ID
+     * @param string $telegramChatId
+     * @return array|null
+     */
+    public function findByTelegramId($telegramChatId) {
+        return fetchOne(
+            "SELECT id, username, email, password, full_name, nik, birth_place, birth_date, gender, phone, address, occupation, religion, marital_status, role, created_at, updated_at, is_active, telegram_chat_id
+             FROM {$this->table}
+             WHERE telegram_chat_id = ? AND is_active = 1",
+            [$telegramChatId]
+        );
     }
 
     /**
@@ -332,5 +346,48 @@ class User {
             'admins' => $adminUsers,
             'users' => $regularUsers
         ];
+    }
+
+    /**
+     * Update Telegram Chat ID untuk user
+     * @param int $userId
+     * @param string $chatId
+     * @return bool
+     */
+    public function updateTelegramChatId($userId, $chatId) {
+        try {
+            return $this->update($userId, ['telegram_chat_id' => $chatId]);
+        } catch (Exception $e) {
+            error_log('Error updating Telegram Chat ID: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get user by Telegram Chat ID
+     * @param string $chatId
+     * @return array|null
+     */
+    public function findByTelegramChatId($chatId) {
+        return fetchOne(
+            "SELECT id, username, email, full_name, role, telegram_chat_id, created_at
+             FROM {$this->table}
+             WHERE telegram_chat_id = ? AND is_active = 1",
+            [$chatId]
+        );
+    }
+
+    /**
+     * Remove Telegram Chat ID (logout dari bot)
+     * @param int $userId
+     * @return bool
+     */
+    public function removeTelegramChatId($userId) {
+        try {
+            return $this->update($userId, ['telegram_chat_id' => null]);
+        } catch (Exception $e) {
+            error_log('Error removing Telegram Chat ID: ' . $e->getMessage());
+            return false;
+        }
     }
 }

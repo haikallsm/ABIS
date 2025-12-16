@@ -190,15 +190,15 @@
     background: linear-gradient(90deg, #6A9C7A, #8FC0A9);
 }
 
-/* Efek hover kartu yang lebih menarik */
+/* Efek hover kartu yang lebih menarik - DISABLED untuk menghindari dashboard yang aneh */
 .card-hover-effect {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: translateY(0);
+    transition: none;
+    transform: none;
 }
 
 .card-hover-effect:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    transform: none;
+    box-shadow: none;
 }
 
 /* Disable movement for specific summary cards when requested */
@@ -402,7 +402,7 @@
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(245, 233, 211, 0.6);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
     position: relative;
     overflow: hidden;
 }
@@ -419,8 +419,8 @@
 }
 
 .cream-card:hover {
-    box-shadow: 0 15px 40px rgba(76, 122, 91, 0.15);
-    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transform: none;
 }
 
 .cream-border {
@@ -450,13 +450,13 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: none;
 }
 
 .profile-box:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-    border-color: rgba(255, 255, 255, 0.4);
+    transform: none;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .profile-box::before {
@@ -474,42 +474,43 @@
     color: white;
     font-weight: bold;
     box-shadow: 0 4px 15px rgba(76, 122, 91, 0.4);
-    transition: all 0.3s ease;
+    transition: none;
 }
 
 .profile-box:hover .profile-avatar {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(76, 122, 91, 0.5);
+    transform: none;
+    box-shadow: 0 4px 15px rgba(76, 122, 91, 0.4);
 }
 
-/* Animasi ikon pada kartu statistik */
+/* Animasi ikon pada kartu statistik - DISABLED untuk stabilitas dashboard */
 .stat-icon {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
+    transform: none;
 }
 
 .card-hover-effect:hover .stat-icon {
-    transform: scale(1.2) rotate(5deg);
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+    transform: none;
+    filter: none;
 }
 
-/* Efek tabel yang lebih menarik */
+/* Efek tabel yang lebih menarik - DISABLED untuk menghindari dashboard yang aneh */
 .table-row-hover {
-    transition: all 0.3s ease;
+    transition: none;
 }
 
 .table-row-hover:hover {
-    background: linear-gradient(90deg, rgba(240, 247, 242, 0.8), rgba(232, 244, 235, 0.6));
-    transform: translateX(5px);
-    box-shadow: 0 4px 12px rgba(76, 122, 91, 0.1);
+    background: none;
+    transform: none;
+    box-shadow: none;
 }
 
-/* Tombol aksi dalam tabel */
+/* Tombol aksi dalam tabel - DISABLED untuk menghindari dashboard yang aneh */
 .action-button {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
     border-radius: 10px;
 }
 
 .action-button:hover {
-    transform: translateY(-2px) scale(1.1);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transform: none;
+    box-shadow: none;
 }

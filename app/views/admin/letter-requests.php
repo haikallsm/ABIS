@@ -6,6 +6,27 @@ $extra_js = ['admin-requests'];
 ?>
 
 <body class="cream-bg antialiased">
+<style>
+/* Disable hover effects pada tombol approve/reject untuk mencegah menghilang */
+.force-visible:hover {
+    opacity: 1 !important;
+    display: inline-flex !important;
+    visibility: visible !important;
+    transform: none !important;
+    box-shadow: none !important;
+    background-color: inherit !important;
+}
+
+button[id^="approve-btn-"]:hover,
+button[id^="reject-btn-"]:hover {
+    background-color: inherit !important;
+    transform: none !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+    display: inline-flex !important;
+    visibility: visible !important;
+}
+</style>
 <div id="appLayout" class="flex h-screen overflow-auto">
     <!-- Sidebar -->
     <aside class="w-72 sidebar flex flex-col">
@@ -58,11 +79,11 @@ $extra_js = ['admin-requests'];
                         <span>Pengajuan Surat</span>
                     </a>
 
-                    <a href="<?php echo BASE_URL; ?>/admin/letter-types" class="sidebar-link flex items-center py-4">
+                    <a href="<?php echo BASE_URL; ?>/admin/telegram-settings" class="sidebar-link flex items-center py-4">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                         </svg>
-                        <span>Jenis Surat</span>
+                        <span>Telegram Bot</span>
                     </a>
                 </div>
 
@@ -86,7 +107,7 @@ $extra_js = ['admin-requests'];
     </aside>
 
     <!-- MAIN CONTENT -->
-    <div class="flex-1 flex flex-col overflow-hidden main-panel">
+    <div class="flex-1 flex flex-col overflow-auto main-panel" style="min-height: 100vh;">
 
         <!-- HEADER JUDUL YANG LEBIH MENARIK -->
         <div class="sticky-header-container">
@@ -184,20 +205,9 @@ $extra_js = ['admin-requests'];
                         </div>
                     </div>
 
-                    <!-- SEARCH -->
-                    <div class="flex justify-between items-center mb-6">
-                        <div class="relative flex-1 max-w-md">
-                            <input id="searchInput" type="text" placeholder="Cari nama atau jenis surat..."
-                                class="w-full px-4 py-3 pl-12 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition duration-300"
-                                onkeyup="searchRequests()" value="<?php echo htmlspecialchars($search ?? ''); ?>">
-                            <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-4 ml-4">
+                    <!-- FILTER STATUS -->
+                    <div class="flex justify-end items-center mb-6">
+                        <div class="flex items-center gap-4">
                             <select id="statusFilter" onchange="filterByStatus()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none">
                                 <option value="">Semua Status</option>
                                 <option value="pending" <?php echo ($status ?? '') === 'pending' ? 'selected' : ''; ?>>Menunggu</option>
@@ -208,8 +218,8 @@ $extra_js = ['admin-requests'];
                     </div>
 
                     <!-- Requests Table -->
-                    <div class="overflow-x-auto mb-6">
-                        <table class="min-w-full">
+                    <div class="overflow-x-auto mb-6 max-h-[70vh] overflow-y-auto border border-gray-200 rounded-lg shadow-sm">
+                        <table class="min-w-full table-fixed">
                             <thead>
                                 <tr class="bg-linear-to-r from-gray-50 to-gray-100">
                                     <th class="px-6 py-4 w-16 text-sm font-bold text-gray-700 text-center border-r border-gray-200">No</th>
@@ -217,13 +227,14 @@ $extra_js = ['admin-requests'];
                                     <th class="px-6 py-4 text-sm font-bold text-gray-700 border-r border-gray-200 min-w-[200px]">Pemohon</th>
                                     <th class="px-6 py-4 text-sm font-bold text-gray-700 border-r border-gray-200 min-w-[200px]">Jenis Surat</th>
                                     <th class="px-6 py-4 text-sm font-bold text-gray-700 border-r border-gray-200 w-32">Status</th>
-                                    <th class="px-6 py-4 w-64 text-sm font-bold text-gray-700 text-center">Aksi</th>
+                                    <th class="px-6 py-4 w-40 text-sm font-bold text-gray-700 text-center border-r border-gray-200">Setujui/Tolak</th>
+                                    <th class="px-6 py-4 w-48 text-sm font-bold text-gray-700 text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 <?php $no = (($requests_data['current_page'] ?? 1) - 1) * ITEMS_PER_PAGE + 1; ?>
                                 <?php foreach (($requests_data['requests'] ?? []) as $request): ?>
-                                <tr class="hover:bg-gray-50 transition-colors">
+                                <tr class="hover:bg-gray-50 transition-colors h-16">
                                     <td class="px-6 py-4 text-center font-medium text-gray-800"><?php echo $no++; ?></td>
                                     <td class="px-6 py-4">
                                         <div class="text-sm text-gray-800"><?php echo date('d/m/Y', strtotime($request['created_at'])); ?></div>
@@ -236,7 +247,7 @@ $extra_js = ['admin-requests'];
                                             </div>
                                             <div>
                                                 <div class="font-medium text-gray-800"><?php echo htmlspecialchars($request['user_full_name']); ?></div>
-                                                <div class="text-xs text-gray-500">NIK: <?php echo htmlspecialchars($request['nik'] ?? 'N/A'); ?></div>
+                                                <div class="text-xs text-gray-500">NIK: <?php echo htmlspecialchars($request['nik'] ?? $request['user_nik'] ?? '-'); ?></div>
                                             </div>
                                         </div>
                                     </td>
@@ -263,56 +274,80 @@ $extra_js = ['admin-requests'];
                                                 break;
                                         }
                                         ?>
-                                        <span class="px-3 py-1.5 rounded-full text-xs font-semibold border <?php echo $statusClass; ?>">
-                                            <?php echo $statusText; ?>
-                                        </span>
-                                        <?php if ($request['status'] !== 'pending'): ?>
-                                        <div class="text-xs text-gray-500 mt-1">
-                                            Oleh: <?php echo htmlspecialchars($request['approved_by_name'] ?? $request['rejected_by_name'] ?? 'N/A'); ?>
+                                        <div class="text-center">
+                                            <span class="px-3 py-1.5 rounded-full text-xs font-semibold border <?php echo $statusClass; ?>">
+                                                <?php echo $statusText; ?>
+                                            </span>
                                         </div>
-                                        <?php endif; ?>
                                     </td>
+                                    <!-- Kolom Setujui/Tolak: Tombol PERMANEN untuk status PENDING -->
                                     <td class="px-6 py-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
                                             <?php if ($request['status'] === 'pending'): ?>
+                                            <!-- Tombol Setujui: Selalu terlihat untuk pending TANPA HOVER EFFECT -->
                                             <button onclick="approveRequest(<?php echo $request['id']; ?>, '<?php echo htmlspecialchars($request['user_full_name']); ?>')"
-                                                    class="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition-colors flex items-center gap-1">
+                                                    class="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-medium flex items-center gap-1 force-visible"
+                                                    style="opacity: 1 !important; display: inline-flex !important; visibility: visible !important; transition: none !important;"
+                                                    onmouseover="this.style.backgroundColor='rgb(220, 252, 231)'"
+                                                    onmouseout="this.style.backgroundColor='rgb(220, 252, 231)'"
+                                                    id="approve-btn-<?php echo $request['id']; ?>">
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                                 Setujui
                                             </button>
+                                            <!-- Tombol Tolak: Selalu terlihat untuk pending TANPA HOVER EFFECT -->
                                             <button onclick="rejectRequest(<?php echo $request['id']; ?>, '<?php echo htmlspecialchars($request['user_full_name']); ?>')"
-                                                    class="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200 transition-colors flex items-center gap-1">
+                                                    class="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium flex items-center gap-1 force-visible"
+                                                    style="opacity: 1 !important; display: inline-flex !important; visibility: visible !important; transition: none !important;"
+                                                    onmouseover="this.style.backgroundColor='rgb(254, 226, 226)'"
+                                                    onmouseout="this.style.backgroundColor='rgb(254, 226, 226)'"
+                                                    id="reject-btn-<?php echo $request['id']; ?>">
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                                 </svg>
                                                 Tolak
                                             </button>
                                             <?php elseif ($request['status'] === 'approved'): ?>
+                                            <!-- Status sudah disetujui - tampilkan status final -->
+                                            <span class="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                                Disetujui
+                                            </span>
+                                            <?php elseif ($request['status'] === 'rejected'): ?>
+                                            <!-- Status sudah ditolak - tampilkan status final -->
+                                            <span class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-medium flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                                Ditolak
+                                            </span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                    <!-- Kolom Aksi: Detail dan Download PDF -->
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <!-- Tombol View Details: SELALU MUNcul untuk semua status -->
+                                            <button onclick="viewDetails(<?php echo $request['id']; ?>)"
+                                                    class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 flex items-center gap-1 force-visible" style="opacity: 1 !important;">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                                Detail
+                                            </button>
+
+                                            <!-- Tombol Download PDF: Hanya muncul untuk status APPROVED -->
+                                            <?php if ($request['status'] === 'approved'): ?>
                                             <button onclick="downloadPDF(<?php echo $request['id']; ?>)"
-                                                    class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-200 transition-colors flex items-center gap-1">
+                                                    class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-200 flex items-center gap-1 force-visible" style="opacity: 1 !important;">
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                                 </svg>
                                                 Download PDF
-                                            </button>
-                                            <button onclick="viewDetails(<?php echo $request['id']; ?>)"
-                                                    class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors flex items-center gap-1">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                </svg>
-                                                Detail
-                                            </button>
-                                            <?php else: ?>
-                                            <button onclick="viewDetails(<?php echo $request['id']; ?>)"
-                                                    class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors flex items-center gap-1">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                </svg>
-                                                Detail
                                             </button>
                                             <?php endif; ?>
                                         </div>
@@ -323,20 +358,25 @@ $extra_js = ['admin-requests'];
                         </table>
                     </div>
 
-                    <!-- Pagination -->
-                    <?php if (($requests_data['pages'] ?? 0) > 1): ?>
+                    <!-- Info and Pagination -->
                     <div class="mt-6 pt-4 border-t flex justify-between items-center text-sm text-gray-600">
                         <div class="flex items-center gap-4">
-                            <span class="font-medium">Halaman <?php echo $requests_data['current_page'] ?? 1; ?> dari <?php echo $requests_data['pages'] ?? 1; ?></span>
+                            <?php if (($requests_data['total'] ?? 0) <= 1000): ?>
+                                <span class="font-medium text-green-600">📋 Menampilkan semua pengajuan surat</span>
+                            <?php else: ?>
+                                <span class="font-medium">Halaman <?php echo $requests_data['current_page'] ?? 1; ?> dari <?php echo $requests_data['pages'] ?? 1; ?></span>
+                            <?php endif; ?>
                         </div>
                         <div class="text-xs text-gray-500">
                             Total: <?php echo $requests_data['total'] ?? 0; ?> pengajuan
                         </div>
                     </div>
+
+                    <?php if (($requests_data['pages'] ?? 0) > 1 && ($requests_data['total'] ?? 0) > 1000): ?>
                     <div class="mt-4 flex justify-center">
                         <div class="flex space-x-2">
                             <?php if (($requests_data['current_page'] ?? 1) > 1): ?>
-                            <a href="?page=<?php echo ($requests_data['current_page'] - 1); ?>&status=<?php echo urlencode($status ?? ''); ?>&search=<?php echo urlencode($search ?? ''); ?>"
+                            <a href="?page=<?php echo ($requests_data['current_page'] - 1); ?>&status=<?php echo urlencode($status ?? ''); ?>"
                                class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">Previous</a>
                             <?php endif; ?>
 
@@ -348,14 +388,14 @@ $extra_js = ['admin-requests'];
 
                             for ($i = $start_page; $i <= $end_page; $i++):
                             ?>
-                            <a href="?page=<?php echo $i; ?>&status=<?php echo urlencode($status ?? ''); ?>&search=<?php echo urlencode($search ?? ''); ?>"
+                            <a href="?page=<?php echo $i; ?>&status=<?php echo urlencode($status ?? ''); ?>"
                                class="px-4 py-2 <?php echo $i === $current_page ? 'bg-primary text-white' : 'bg-white border border-gray-300 hover:bg-gray-50'; ?> rounded-lg text-sm transition-colors">
                                 <?php echo $i; ?>
                             </a>
                             <?php endfor; ?>
 
                             <?php if (($requests_data['current_page'] ?? 1) < ($requests_data['pages'] ?? 1)): ?>
-                            <a href="?page=<?php echo ($requests_data['current_page'] + 1); ?>&status=<?php echo urlencode($status ?? ''); ?>&search=<?php echo urlencode($search ?? ''); ?>"
+                            <a href="?page=<?php echo ($requests_data['current_page'] + 1); ?>&status=<?php echo urlencode($status ?? ''); ?>"
                                class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">Next</a>
                             <?php endif; ?>
                         </div>
@@ -397,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
             message.style.opacity = '0';
             message.style.transform = 'translateY(-10px)';
             message.style.transition = 'all 0.3s ease';
-            setTimeout(() => message.remove(), 300);
+            setTimeout(() => message.remove(), 5000);
         }, 5000);
     });
 });
@@ -492,42 +532,13 @@ function viewDetails(requestId) {
     window.open(`${BASE_URL}/admin/requests/${requestId}/download`, '_blank');
 }
 
-// Search functionality
-function searchRequests() {
-    const searchTerm = document.getElementById('searchInput').value;
-    const statusFilter = document.getElementById('statusFilter').value;
-
-    // Build URL with parameters
-    let url = `${BASE_URL}/admin/letter-requests`;
-    const params = [];
-
-    if (searchTerm.trim()) {
-        params.push(`search=${encodeURIComponent(searchTerm)}`);
-    }
-
-    if (statusFilter) {
-        params.push(`status=${encodeURIComponent(statusFilter)}`);
-    }
-
-    if (params.length > 0) {
-        url += '?' + params.join('&');
-    }
-
-    window.location.href = url;
-}
-
 // Filter by status
 function filterByStatus() {
-    const searchTerm = document.getElementById('searchInput').value;
     const statusFilter = document.getElementById('statusFilter').value;
 
     // Build URL with parameters
     let url = `${BASE_URL}/admin/letter-requests`;
     const params = [];
-
-    if (searchTerm.trim()) {
-        params.push(`search=${encodeURIComponent(searchTerm)}`);
-    }
 
     if (statusFilter) {
         params.push(`status=${encodeURIComponent(statusFilter)}`);

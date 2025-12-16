@@ -76,3 +76,4 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Create request page initialized');
 });
 
+

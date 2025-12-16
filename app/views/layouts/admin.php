@@ -46,6 +46,12 @@
             <?php echo $page_js; ?>
         </script>
     <?php endif; ?>
+
+    <!-- Global JavaScript variables -->
+    <script>
+        window.BASE_URL = '<?php echo BASE_URL; ?>';
+        window.baseUrl = '<?php echo BASE_URL; ?>';
+    </script>
 </body>
 </html>
 

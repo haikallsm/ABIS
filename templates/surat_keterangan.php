@@ -78,42 +78,42 @@
             <tr>
                 <td width="150">Nama</td>
                 <td width="20">:</td>
-                <td><?php echo htmlspecialchars($request['user_full_name'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($nama ?? $full_name ?? $request['user_full_name'] ?? ''); ?></td>
             </tr>
             <tr>
                 <td>NIK</td>
                 <td>:</td>
-                <td><?php echo htmlspecialchars($request['nik'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($nik ?? $request['nik'] ?? '-'); ?></td>
             </tr>
             <tr>
                 <td>Tempat/Tanggal Lahir</td>
                 <td>:</td>
-                <td><?php echo htmlspecialchars(($request['birth_place'] ?? '') . ', ' . ($request['birth_date'] ?? '')); ?></td>
+                <td><?php echo htmlspecialchars(($tempat_lahir ?? $birth_place ?? '-') . ', ' . (!empty($tanggal_lahir_formatted) ? $tanggal_lahir_formatted : (!empty($tanggal_lahir) ? date('d-m-Y', strtotime($tanggal_lahir)) : (!empty($birth_date) ? date('d-m-Y', strtotime($birth_date)) : '-')))); ?></td>
             </tr>
             <tr>
                 <td>Jenis Kelamin</td>
                 <td>:</td>
-                <td><?php echo htmlspecialchars($request['gender'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($jenis_kelamin ?? $gender ?? 'Laki-laki'); ?></td>
             </tr>
             <tr>
                 <td>Agama</td>
                 <td>:</td>
-                <td><?php echo htmlspecialchars($request['religion'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($agama ?? $religion ?? 'Islam'); ?></td>
             </tr>
             <tr>
                 <td>Pekerjaan</td>
                 <td>:</td>
-                <td><?php echo htmlspecialchars($request['occupation'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($pekerjaan ?? $occupation ?? 'Wiraswasta'); ?></td>
             </tr>
             <tr>
                 <td>Status Perkawinan</td>
                 <td>:</td>
-                <td><?php echo htmlspecialchars($request['marital_status'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($marital_status ?? 'Belum Kawin'); ?></td>
             </tr>
             <tr>
                 <td valign="top">Alamat</td>
                 <td valign="top">:</td>
-                <td><?php echo htmlspecialchars($request['address'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($alamat ?? $address ?? $request['address'] ?? ''); ?></td>
             </tr>
         </table>
 

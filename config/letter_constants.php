@@ -30,41 +30,7 @@ define('BUSINESS_START_YEAR', 'TAHUN ....');
 define('BUSINESS_PURPOSE', 'DOMISILI');
 
 // Common template data arrays
-function getDefaultTemplateData() {
-    return [
-        // Regional data
-        'kabupaten' => DEFAULT_KABUPATEN,
-        'kecamatan' => DEFAULT_KECAMATAN,
-        'desa' => DEFAULT_DESA,
-        'alamat_desa' => DEFAULT_ALAMAT_DESA,
-        'kepala_desa' => DEFAULT_KEPALA_DESA,
-
-        // Personal defaults
-        'warganegara' => DEFAULT_WARGANEGARA,
-        'pekerjaan' => DEFAULT_PEKERJAAN,
-        'keperluan' => DEFAULT_KEPERLUAN,
-
-        // Business defaults
-        'nama_usaha' => BUSINESS_CERTIFICATE_PLACEHOLDER,
-        'mulai_usaha' => BUSINESS_START_YEAR,
-        'jenis_usaha' => DEFAULT_JENIS_USAHA,
-        'tujuan' => BUSINESS_PURPOSE,
-
-        // Event defaults
-        'nama_kegiatan' => DEFAULT_NAMA_KEGIATAN,
-        'hari_kegiatan' => DEFAULT_HARI_KEGIATAN,
-        'waktu_kegiatan' => DEFAULT_WAKTU_KEGIATAN,
-        'hiburan' => DEFAULT_HIBURAN,
-
-        // Scholarship defaults
-        'nama_ayah' => '-',
-        'sekolah' => SCHOOL_PLACEHOLDER,
-        'nis_nim' => '-',
-        'semester' => '-',
-        'jurusan' => '-',
-        'nama_beasiswa' => DEFAULT_NAMA_BEASISWA,
-    ];
-}
+// getDefaultTemplateData() moved to LetterService
 
 // Template type mappings
 function getTemplateTypeMapping() {
@@ -109,4 +75,5 @@ define('ERROR_PDF_GENERATION_FAILED', 'Gagal membuat file PDF');
 define('ERROR_FILE_NOT_FOUND', 'File PDF tidak ditemukan');
 define('ERROR_REQUEST_NOT_APPROVED', 'Surat hanya dapat didownload jika sudah disetujui');
 ?>
+
 

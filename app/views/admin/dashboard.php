@@ -47,18 +47,18 @@ $extra_js = [];
                 <div class="px-6">
                     <p class="sidebar-section-title uppercase tracking-wider mb-3">Surat & Dokumen</p>
 
-                    <a href="<?php echo BASE_URL; ?>/admin/letter-types" class="sidebar-link flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                        <span>Jenis Surat</span>
-                    </a>
-
                     <a href="<?php echo BASE_URL; ?>/admin/letter-requests" class="sidebar-link flex items-center py-4">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2m-6 0h6"></path>
                         </svg>
                         <span>Pengajuan Surat</span>
+                    </a>
+
+                    <a href="<?php echo BASE_URL; ?>/admin/telegram-settings" class="sidebar-link flex items-center py-4">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        <span>Telegram Bot</span>
                     </a>
 
                 </div>
@@ -116,11 +116,10 @@ $extra_js = [];
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
                     <!-- JUMLAH PENGGUNA -->
-                    <div class="p-6 card-bg-green rounded-xl card-hover-effect no-move
-                                transition duration-300 flex justify-between items-center">
+                    <div class="p-6 card-bg-green rounded-xl flex justify-between items-center">
                         <div>
                             <p class="text-sm text-gray-600 mb-2 font-medium">Jumlah Pengguna</p>
-                            <p class="text-4xl font-bold mt-1 text-primary"><?php echo $stats['users']['total'] ?? 128; ?></p>
+                            <p class="text-4xl font-bold mt-1 text-primary"><?php echo $stats['users']['total'] ?? 0; ?></p>
                             <div class="flex items-center mt-3">
                                 <svg class="w-4 h-4 text-primary mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
@@ -136,11 +135,10 @@ $extra_js = [];
                     </div>
 
                     <!-- JUMLAH DOKUMEN -->
-                    <div class="p-6 card-bg-teal rounded-xl card-hover-effect no-move
-                                transition duration-300 flex justify-between items-center">
+                    <div class="p-6 card-bg-teal rounded-xl flex justify-between items-center">
                         <div>
                             <p class="text-sm text-gray-600 mb-2 font-medium">Jumlah Dokumen</p>
-                            <p class="text-4xl font-bold mt-1 text-secondary"><?php echo $stats['requests']['total'] ?? 320; ?></p>
+                            <p class="text-4xl font-bold mt-1 text-secondary"><?php echo $stats['requests']['total'] ?? 0; ?></p>
                             <div class="flex items-center mt-3">
                                 <svg class="w-4 h-4 text-secondary mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
@@ -154,11 +152,10 @@ $extra_js = [];
                     </div>
 
                     <!-- DOKUMEN DISETUJUI -->
-                    <div class="p-6 card-bg-peach rounded-xl card-hover-effect no-move
-                                transition duration-300 flex justify-between items-center">
+                    <div class="p-6 card-bg-peach rounded-xl flex justify-between items-center">
                         <div>
                             <p class="text-sm text-gray-600 mb-2 font-medium">Dokumen Disetujui</p>
-                            <p class="text-4xl font-bold mt-1 text-accent"><?php echo $stats['requests']['approved'] ?? 210; ?></p>
+                            <p class="text-4xl font-bold mt-1 text-accent"><?php echo $stats['requests']['approved'] ?? 0; ?></p>
                             <div class="flex items-center mt-3">
                                 <div class="w-2 h-2 bg-accent rounded-full mr-2"></div>
                                 <p class="text-xs text-gray-500">65.6% dari total</p>
@@ -170,11 +167,10 @@ $extra_js = [];
                     </div>
 
                     <!-- PERMINTAAN HARI INI -->
-                    <div class="p-6 card-bg-coral rounded-xl card-hover-effect no-move
-                                transition duration-300 flex justify-between items-center">
+                    <div class="p-6 card-bg-coral rounded-xl flex justify-between items-center">
                         <div>
                             <p class="text-sm text-gray-600 mb-2 font-medium">Permintaan Hari Ini</p>
-                            <p class="text-4xl font-bold mt-1 text-highlight"><?php echo $stats['requests']['pending_today'] ?? 6; ?></p>
+                            <p class="text-4xl font-bold mt-1 text-highlight"><?php echo $stats['requests']['pending_today'] ?? 0; ?></p>
                             <div class="flex items-center mt-3">
                                 <div class="w-2 h-2 bg-highlight rounded-full mr-2 animate-pulse"></div>
                                 <p class="text-xs text-gray-500">2 menunggu proses</p>
@@ -186,11 +182,10 @@ $extra_js = [];
                     </div>
 
                     <!-- DISETUJUI HARI INI -->
-                    <div class="p-6 card-bg-mint rounded-xl card-hover-effect no-move
-                                transition duration-300 flex justify-between items-center">
+                    <div class="p-6 card-bg-mint rounded-xl flex justify-between items-center">
                         <div>
                             <p class="text-sm text-gray-600 mb-2 font-medium">Disetujui Hari Ini</p>
-                            <p class="text-4xl font-bold mt-1 text-primary"><?php echo $stats['requests']['approved_today'] ?? 3; ?></p>
+                            <p class="text-4xl font-bold mt-1 text-primary"><?php echo $stats['requests']['approved_today'] ?? 0; ?></p>
                             <div class="flex items-center mt-3">
                                 <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
                                 <p class="text-xs text-gray-500">50% dari permintaan</p>
@@ -202,8 +197,7 @@ $extra_js = [];
                     </div>
 
                     <!-- TOTAL SURAT BULAN INI -->
-                    <div class="p-6 card-bg-sage rounded-xl card-hover-effect no-move
-                                transition duration-300 flex justify-between items-center">
+                    <div class="p-6 card-bg-sage rounded-xl flex justify-between items-center">
                         <div>
                             <p class="text-sm text-gray-600 mb-2 font-medium">Total Surat Bulan Ini</p>
                             <p class="text-4xl font-bold mt-1 text-secondary"><?php echo $stats['requests']['this_month'] ?? 52; ?></p>
@@ -307,35 +301,35 @@ $extra_js = [];
                             </div>
                             <ul class="space-y-5">
                                 <li class="flex items-start group">
-                                    <div class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mr-3 mt-1 group-hover:scale-110 transition-transform">
+                                    <div class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mr-3 mt-1">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                         </svg>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-dark group-hover:text-primary transition-colors">Surat Pengantar SKCK disetujui</p>
+                                        <p class="text-sm font-medium text-dark">Surat Pengantar SKCK disetujui</p>
                                         <p class="text-xs text-gray-500 mt-1">27 Jul 2025, 10:30 WIB</p>
                                     </div>
                                 </li>
                                 <li class="flex items-start group">
-                                    <div class="w-9 h-9 rounded-full bg-secondary/10 text-secondary flex items-center justify-center shrink-0 mr-3 mt-1 group-hover:scale-110 transition-transform">
+                                    <div class="w-9 h-9 rounded-full bg-secondary/10 text-secondary flex items-center justify-center shrink-0 mr-3 mt-1">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M12 4.354a4 4 0 100 5.292M12 11.354C9.647 11.354 7.6 13.301 7.6 15.654v1.746c0 1.258.972 2.308 2.308 2.308h4.184c1.336 0 2.308-1.05 2.308-2.308v-1.746c0-2.353-2.047-4.3-4.39-4.3z"></path>
                                         </svg>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-dark group-hover:text-secondary transition-colors">Pengguna baru terdaftar</p>
+                                        <p class="text-sm font-medium text-dark">Pengguna baru terdaftar</p>
                                         <p class="text-xs text-gray-500 mt-1">26 Jul 2025, 15:45 WIB</p>
                                     </div>
                                 </li>
                                 <li class="flex items-start group">
-                                    <div class="w-9 h-9 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0 mr-3 mt-1 group-hover:scale-110 transition-transform">
+                                    <div class="w-9 h-9 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0 mr-3 mt-1">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-dark group-hover:text-accent transition-colors">Permintaan Surat Keterangan Domisili</p>
+                                        <p class="text-sm font-medium text-dark">Permintaan Surat Keterangan Domisili</p>
                                         <p class="text-xs text-gray-500 mt-1">26 Jul 2025, 09:15 WIB</p>
                                     </div>
                                 </li>

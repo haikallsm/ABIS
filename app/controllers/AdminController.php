@@ -5,6 +5,10 @@
  */
 
 require_once 'config/letter_constants.php';
+require_once 'config/session.php';
+require_once 'app/models/User.php';
+require_once 'app/models/LetterRequest.php';
+require_once 'app/models/LetterType.php';
 
 class AdminController {
     private $userModel;
@@ -133,12 +137,22 @@ class AdminController {
             'recent_users' => $recent_users
         ];
 
+        // Debug: Log data being passed to view
+        error_log("AdminController::dashboard - Data keys: " . json_encode(array_keys($data)));
+        error_log("AdminController::dashboard - recent_requests count: " . count($recent_requests ?? []));
+        error_log("AdminController::dashboard - stats: " . json_encode($stats));
+
         // Extract data to make variables available in view
         extract($data);
 
         // Load dashboard view
         ob_start();
-        include VIEWS_DIR . '/admin/dashboard.php';
+        $viewPath = VIEWS_DIR . '/admin/dashboard.php';
+        if (!file_exists($viewPath)) {
+            error_log("AdminController::dashboard - View file not found: {$viewPath}");
+            die("View file not found: {$viewPath}");
+        }
+        include $viewPath;
         $content = ob_get_clean();
 
         // Load admin layout with sidebar
@@ -156,9 +170,30 @@ class AdminController {
         // Get all users without pagination for management
         $users_data = $this->userModel->getAllUsers($search);
 
+        // Debug: Log data being passed to view
+        error_log("AdminController::users - users_data keys: " . json_encode(array_keys($users_data)));
+        error_log("AdminController::users - users count: " . count($users_data['users'] ?? []));
+
+        // Prepare data for view
+        $data = [
+            'title' => 'Manajemen Pengguna',
+            'extra_css' => ['admin-dashboard.css'],
+            'extra_js' => ['admin-dashboard.js'],
+            'users_data' => $users_data,
+            'search' => $search
+        ];
+
+        // Extract data to make variables available in view
+        extract($data);
+
         // Load view
         ob_start();
-        include VIEWS_DIR . '/admin/users.php';
+        $viewPath = VIEWS_DIR . '/admin/users.php';
+        if (!file_exists($viewPath)) {
+            error_log("AdminController::users - View file not found: {$viewPath}");
+            die("View file not found: {$viewPath}");
+        }
+        include $viewPath;
         $content = ob_get_clean();
 
         // Load admin layout
@@ -215,13 +250,12 @@ class AdminController {
 
         $page = $_GET['page'] ?? 1;
         $status = $_GET['status'] ?? '';
-        $search = $_GET['search'] ?? '';
 
         $filters = [];
         if (!empty($status)) $filters['status'] = $status;
-        if (!empty($search)) $filters['search'] = $search;
 
-        $requests_data = $this->letterRequestModel->getAll($page, ITEMS_PER_PAGE, $filters);
+        // For admin letter requests page, show all requests without pagination to see everything at once
+        $requests_data = $this->letterRequestModel->getAll($page, 1000, $filters); // Large limit to show all
 
         // Prepare data for view
         $data = [
@@ -229,16 +263,24 @@ class AdminController {
             'extra_css' => ['admin-dashboard.css'],
             'extra_js' => ['admin-dashboard.js'],
             'requests_data' => $requests_data,
-            'status' => $status,
-            'search' => $search
+            'status' => $status
         ];
+
+        // Debug: Log data being passed to view
+        error_log("AdminController::letterRequests - Data keys: " . json_encode(array_keys($data)));
+        error_log("AdminController::letterRequests - requests_data count: " . count($requests_data['requests'] ?? []));
 
         // Extract data to make variables available in view
         extract($data);
 
         // Load view
         ob_start();
-        include VIEWS_DIR . '/admin/letter-requests.php';
+        $viewPath = VIEWS_DIR . '/admin/letter-requests.php';
+        if (!file_exists($viewPath)) {
+            error_log("AdminController::letterRequests - View file not found: {$viewPath}");
+            die("View file not found: {$viewPath}");
+        }
+        include $viewPath;
         $content = ob_get_clean();
 
         // Load admin layout
@@ -271,110 +313,6 @@ class AdminController {
     }
 
     /**
-     * Display letter types management
-     */
-    public function letterTypes() {
-        requireAuth('admin');
-
-        $letterTypes = $this->letterTypeModel->getAll();
-
-        // Load view
-        ob_start();
-        include VIEWS_DIR . '/admin/letter-types.php';
-        $content = ob_get_clean();
-
-        // Load admin layout
-        include VIEWS_DIR . '/layouts/admin.php';
-    }
-
-    /**
-     * Create new letter type
-     */
-    public function createLetterType() {
-        requireAuth('admin');
-
-        $data = [
-            'name' => $_POST['name'] ?? '',
-            'code' => $_POST['code'] ?? '',
-            'is_active' => isset($_POST['is_active']) ? 1 : 0
-        ];
-
-        if (empty($data['name']) || empty($data['code'])) {
-            $_SESSION['error'] = 'Nama dan kode jenis surat harus diisi.';
-            header('Location: ' . BASE_URL . '/admin/letter-types');
-            exit;
-        }
-
-        $result = $this->letterTypeModel->create($data);
-
-        if ($result) {
-            $_SESSION['success'] = 'Jenis surat berhasil ditambahkan.';
-        } else {
-            $_SESSION['error'] = 'Gagal menambahkan jenis surat.';
-        }
-
-        header('Location: ' . BASE_URL . '/admin/letter-types');
-        exit;
-    }
-
-    /**
-     * Update letter type
-     */
-    public function updateLetterType($id) {
-        requireAuth('admin');
-
-        $data = [
-            'name' => $_POST['name'] ?? '',
-            'code' => $_POST['code'] ?? '',
-            'is_active' => isset($_POST['is_active']) ? 1 : 0
-        ];
-
-        if (empty($data['name']) || empty($data['code'])) {
-            $_SESSION['error'] = 'Nama dan kode jenis surat harus diisi.';
-            header('Location: ' . BASE_URL . '/admin/letter-types');
-            exit;
-        }
-
-        $result = $this->letterTypeModel->update($id, $data);
-
-        if ($result) {
-            $_SESSION['success'] = 'Jenis surat berhasil diperbarui.';
-        } else {
-            $_SESSION['error'] = 'Gagal memperbarui jenis surat.';
-        }
-
-        header('Location: ' . BASE_URL . '/admin/letter-types');
-        exit;
-    }
-
-    /**
-     * Toggle letter type status
-     */
-    public function toggleLetterTypeStatus($id) {
-        requireAuth('admin');
-
-        $type = $this->letterTypeModel->findById($id);
-        if (!$type) {
-            $_SESSION['error'] = 'Jenis surat tidak ditemukan.';
-            header('Location: ' . BASE_URL . '/admin/letter-types');
-            exit;
-        }
-
-        $newStatus = $type['is_active'] ? 0 : 1;
-        $result = $this->letterTypeModel->update($id, ['is_active' => $newStatus]);
-
-        if ($result) {
-            $statusText = $newStatus ? 'diaktifkan' : 'dinonaktifkan';
-            $_SESSION['success'] = "Jenis surat berhasil {$statusText}.";
-        } else {
-            $_SESSION['error'] = 'Gagal mengubah status jenis surat.';
-        }
-
-        header('Location: ' . BASE_URL . '/admin/letter-types');
-        exit;
-    }
-
-    /**
      * Export requests to Excel
      */
     public function exportExcel() {
@@ -383,17 +321,11 @@ class AdminController {
         // Get filter parameters
         $dari_tanggal = $_GET['dari_tanggal'] ?? '';
         $sampai_tanggal = $_GET['sampai_tanggal'] ?? '';
-        $jenis_keterangan = $_GET['jenis_keterangan'] ?? '';
-        $jenis_pengantar = $_GET['jenis_pengantar'] ?? '';
-        $jenis_lainnya = $_GET['jenis_lainnya'] ?? '';
 
         // Build filters
         $filters = [];
         if (!empty($dari_tanggal)) $filters['dari_tanggal'] = $dari_tanggal;
         if (!empty($sampai_tanggal)) $filters['sampai_tanggal'] = $sampai_tanggal;
-        if (!empty($jenis_keterangan)) $filters['jenis_keterangan'] = true;
-        if (!empty($jenis_pengantar)) $filters['jenis_pengantar'] = true;
-        if (!empty($jenis_lainnya)) $filters['jenis_lainnya'] = true;
 
         // Get all requests without pagination
         $requests = $this->letterRequestModel->getAllForExport($filters);
@@ -406,53 +338,88 @@ class AdminController {
      * Generate and download PDF for approved request
      */
     public function downloadRequest($requestId) {
-        requireAuth('admin');
+        try {
+            requireAuth('admin');
 
-        $request = $this->letterRequestModel->findById($requestId);
-
-        if (!$request) {
-            $_SESSION['error'] = 'Pengajuan surat tidak ditemukan.';
-            header('Location: ' . BASE_URL . '/admin/letter-requests');
-            exit;
-        }
-
-        if ($request['status'] !== 'approved') {
-            $_SESSION['error'] = 'Surat hanya dapat didownload jika sudah disetujui.';
-            header('Location: ' . BASE_URL . '/admin/letter-requests');
-            exit;
-        }
-
-        // Check if PDF already generated
-        if (empty($request['generated_file'])) {
-            // Generate PDF if not exists
-            $this->generateLetterPDF($requestId);
-            // Re-fetch request data
             $request = $this->letterRequestModel->findById($requestId);
-        }
 
-        if (empty($request['generated_file'])) {
-            $_SESSION['error'] = 'Gagal membuat file PDF.';
+            if (!$request) {
+                $this->sendErrorResponse('Pengajuan surat tidak ditemukan.', 404);
+            }
+
+            if ($request['status'] !== 'approved') {
+                $this->sendErrorResponse('Surat hanya dapat didownload jika sudah disetujui.', 403);
+            }
+
+            // Check if PDF already generated
+            if (empty($request['generated_file'])) {
+                // Generate PDF if not exists
+                $this->generateLetterPDF($requestId);
+                // Re-fetch request data
+                $request = $this->letterRequestModel->findById($requestId);
+            }
+
+            if (empty($request['generated_file'])) {
+                $this->sendErrorResponse('Gagal membuat file PDF.', 500);
+            }
+
+            // Download the file
+            require_once 'utils/PDFGenerator.php';
+            $pdfGenerator = new PDFGenerator();
+            $filePath = $pdfGenerator->getFilePath($request['generated_file']);
+
+            if (!$pdfGenerator->fileExists($request['generated_file'])) {
+                $this->sendErrorResponse('File PDF tidak ditemukan.', 404);
+            }
+
+            // Check if this is an AJAX request
+            $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                     strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+            if ($isAjax) {
+                // For AJAX requests, send file as response
+                header('Content-Type: application/pdf');
+                header('Content-Disposition: attachment; filename="' . basename($filePath) . '"');
+                header('Content-Length: ' . filesize($filePath));
+                header('Cache-Control: no-cache, no-store, must-revalidate');
+                header('Pragma: no-cache');
+                header('Expires: 0');
+
+                readfile($filePath);
+                exit;
+            } else {
+                // For regular requests, force download
+                header('Content-Type: application/octet-stream');
+                header('Content-Disposition: attachment; filename="' . basename($filePath) . '"');
+                header('Content-Length: ' . filesize($filePath));
+                header('Cache-Control: private, max-age=0, must-revalidate');
+                header('Pragma: public');
+
+                readfile($filePath);
+                exit;
+            }
+
+        } catch (Exception $e) {
+            error_log('Download PDF error: ' . $e->getMessage());
+            $this->sendErrorResponse('Terjadi kesalahan saat mengunduh PDF.', 500);
+        }
+    }
+
+    /**
+     * Send error response for AJAX or redirect for regular requests
+     */
+    private function sendErrorResponse($message, $statusCode = 500) {
+        $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                 strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+        if ($isAjax) {
+            http_response_code($statusCode);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $message]);
+        } else {
+            $_SESSION['error'] = $message;
             header('Location: ' . BASE_URL . '/admin/letter-requests');
-            exit;
         }
-
-        // Download the file
-        require_once 'utils/PDFGenerator.php';
-        $pdfGenerator = new PDFGenerator();
-        $filePath = $pdfGenerator->getFilePath($request['generated_file']);
-
-        if (!$pdfGenerator->fileExists($request['generated_file'])) {
-            $_SESSION['error'] = 'File PDF tidak ditemukan.';
-            header('Location: ' . BASE_URL . '/admin/letter-requests');
-            exit;
-        }
-
-        // Force download
-        header('Content-Type: application/octet-stream');
-        header('Content-Disposition: attachment; filename="' . basename($filePath) . '"');
-        header('Content-Length: ' . filesize($filePath));
-
-        readfile($filePath);
         exit;
     }
 
@@ -742,9 +709,84 @@ class AdminController {
     }
 
     /**
-     * Create and download Excel file
+     * Create and download Excel file using PhpSpreadsheet
      */
     private function createExcelFile($requests) {
+        try {
+            require_once 'vendor/autoload.php';
+
+            // Create new Spreadsheet object
+            $spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set document properties
+            $spreadsheet->getProperties()
+                ->setCreator('ABIS - Aplikasi Desa Digital')
+                ->setLastModifiedBy('ABIS System')
+                ->setTitle('Export Data Surat')
+                ->setSubject('Data Pengajuan Surat')
+                ->setDescription('Export data pengajuan surat dari sistem ABIS');
+
+            // Set headers
+            $headers = ['No', 'Tanggal', 'Jenis Surat', 'Nama Pemohon', 'NIK', 'Status', 'Catatan Admin'];
+            $col = 'A';
+            foreach ($headers as $header) {
+                $sheet->setCellValue($col . '1', $header);
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+                $col++;
+            }
+
+            // Style the header row
+            $headerStyle = [
+                'font' => [
+                    'bold' => true,
+                    'color' => ['rgb' => 'FFFFFF'],
+                ],
+                'fill' => [
+                    'fillType' => PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '4F46E5'], // Indigo color
+                ],
+            ];
+            $sheet->getStyle('A1:G1')->applyFromArray($headerStyle);
+
+            // Add data rows
+            $row = 2;
+            $no = 1;
+            foreach ($requests as $request) {
+                $sheet->setCellValue('A' . $row, $no++);
+                $sheet->setCellValue('B' . $row, date('d/m/Y', strtotime($request['created_at'])));
+                $sheet->setCellValue('C' . $row, htmlspecialchars($request['letter_type_name']));
+                $sheet->setCellValue('D' . $row, htmlspecialchars($request['user_full_name']));
+                $sheet->setCellValue('E' . $row, htmlspecialchars($request['user_nik']));
+                $sheet->setCellValue('F' . $row, ucfirst($request['status']));
+                $sheet->setCellValue('G' . $row, htmlspecialchars($request['admin_notes'] ?? ''));
+
+                $row++;
+            }
+
+            // Set filename
+            $filename = 'data_surat_' . date('Y-m-d_H-i-s') . '.xlsx';
+
+            // Redirect output to a client’s web browser (Excel2007)
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+
+            $writer = PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $writer->save('php://output');
+            exit;
+
+        } catch (Exception $e) {
+            error_log("Excel Export Error: " . $e->getMessage());
+            // Fallback to HTML table method
+            $this->createExcelFileHTML($requests);
+        }
+    }
+
+    /**
+     * Fallback: Create and download Excel file as HTML table
+     */
+    private function createExcelFileHTML($requests) {
         // Set headers for Excel download
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="data_surat_' . date('Y-m-d_H-i-s') . '.xls"');
@@ -793,30 +835,55 @@ class AdminController {
      * Approve request
      */
     public function approveRequest($requestId) {
-        requireAuth('admin');
+        try {
+            requireAuth('admin');
 
-        $adminId = getCurrentUserId();
-        $notes = $_POST['notes'] ?? '';
+            $adminId = getCurrentUserId();
+            $notes = $_POST['notes'] ?? '';
 
-        $success = $this->letterRequestModel->approve($requestId, $adminId, $notes);
+            $success = $this->letterRequestModel->approve($requestId, $adminId, $notes);
 
-        // Auto-generate PDF if approval successful
-        if ($success) {
-            // Generate letter number first
-            $request = $this->letterRequestModel->findById($requestId);
-            if ($request) {
-                $letterNumber = $this->generateLetterNumber($request);
-                $this->letterRequestModel->update($requestId, ['letter_number' => $letterNumber]);
+            // Auto-generate PDF if approval successful
+            if ($success) {
+                // Generate letter number first
+                $request = $this->letterRequestModel->findById($requestId);
+                if ($request) {
+                    $letterNumber = $this->generateLetterNumber($request);
+                    $this->letterRequestModel->update($requestId, ['letter_number' => $letterNumber]);
+                }
+
+                // Generate PDF
+                $this->generateLetterPDF($requestId);
+
+                // Send Telegram notification
+                try {
+                    require_once 'utils/TelegramBot.php';
+                    $telegramBot = new TelegramBot();
+                    $adminName = $this->userModel->findById($adminId)['full_name'] ?? 'Admin';
+
+                    // Get request data with user info
+                    $requestData = $this->letterRequestModel->findById($requestId);
+                    if ($requestData) {
+                        $telegramBot->sendApprovalNotification($requestData, $adminName);
+                    }
+                } catch (Exception $e) {
+                    error_log('Telegram notification error (approval): ' . $e->getMessage());
+                    // Don't fail the approval process if Telegram fails
+                }
             }
 
-            // Generate PDF
-            $this->generateLetterPDF($requestId);
+            $message = $success ? 'Permohonan berhasil disetujui' : 'Gagal menyetujui permohonan';
+
+        } catch (Exception $e) {
+            $success = false;
+            $message = 'Terjadi kesalahan: ' . $e->getMessage();
+            error_log('Approve request error: ' . $e->getMessage());
         }
 
         // If called via AJAX, return JSON
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             header('Content-Type: application/json');
-            echo json_encode(['success' => $success, 'message' => $success ? 'Permohonan berhasil disetujui' : 'Gagal menyetujui permohonan']);
+            echo json_encode(['success' => $success, 'message' => $message]);
             exit;
         }
 
@@ -835,17 +902,44 @@ class AdminController {
      * Reject request
      */
     public function rejectRequest($requestId) {
-        requireAuth('admin');
+        try {
+            requireAuth('admin');
 
-        $adminId = getCurrentUserId();
-        $notes = $_POST['notes'] ?? '';
+            $adminId = getCurrentUserId();
+            $notes = $_POST['notes'] ?? '';
 
-        $success = $this->letterRequestModel->reject($requestId, $adminId, $notes);
+            $success = $this->letterRequestModel->reject($requestId, $adminId, $notes);
+
+            // Send Telegram notification for rejection
+            if ($success) {
+                try {
+                    require_once 'utils/TelegramBot.php';
+                    $telegramBot = new TelegramBot();
+                    $adminName = $this->userModel->findById($adminId)['full_name'] ?? 'Admin';
+
+                    // Get request data with user info
+                    $requestData = $this->letterRequestModel->findById($requestId);
+                    if ($requestData) {
+                        $telegramBot->sendRejectionNotification($requestData, $adminName, $notes);
+                    }
+                } catch (Exception $e) {
+                    error_log('Telegram notification error (rejection): ' . $e->getMessage());
+                    // Don't fail the rejection process if Telegram fails
+                }
+            }
+
+            $message = $success ? 'Permohonan berhasil ditolak' : 'Gagal menolak permohonan';
+
+        } catch (Exception $e) {
+            $success = false;
+            $message = 'Terjadi kesalahan: ' . $e->getMessage();
+            error_log('Reject request error: ' . $e->getMessage());
+        }
 
         // If called via AJAX, return JSON
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             header('Content-Type: application/json');
-            echo json_encode(['success' => $success, 'message' => $success ? 'Permohonan berhasil ditolak' : 'Gagal menolak permohonan']);
+            echo json_encode(['success' => $success, 'message' => $message]);
             exit;
         }
 
@@ -858,6 +952,132 @@ class AdminController {
 
         header('Location: ' . BASE_URL . '/admin/requests');
         exit;
+    }
+
+    /**
+     * Telegram Bot Settings
+     */
+    public function telegramSettings() {
+        requireAuth('admin');
+
+        $error = '';
+        $success = '';
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (isset($_POST['test_bot'])) {
+                // Test bot connection
+                try {
+                    require_once 'utils/TelegramBot.php';
+                    $telegramBot = new TelegramBot();
+                    $result = $telegramBot->testConnection();
+
+                    if ($result['ok']) {
+                        $success = '✅ Koneksi bot berhasil! Bot dapat menerima pesan.';
+                    } else {
+                        $error = '❌ Koneksi bot gagal: ' . ($result['description'] ?? 'Unknown error');
+                    }
+                } catch (Exception $e) {
+                    $error = '❌ Error: ' . $e->getMessage();
+                }
+            } elseif (isset($_POST['update_settings'])) {
+                // Update bot settings
+                $botToken = sanitize($_POST['bot_token'] ?? '');
+                $testChatId = sanitize($_POST['test_chat_id'] ?? '');
+                $notificationsEnabled = isset($_POST['notifications_enabled']) ? 'true' : 'false';
+
+                try {
+                    // Update config file
+                    $configFile = 'config/telegram.php';
+                    $configContent = file_get_contents($configFile);
+
+                    // Update bot token
+                    $configContent = preg_replace(
+                        "/define\('TELEGRAM_BOT_TOKEN', '[^']*'\);/",
+                        "define('TELEGRAM_BOT_TOKEN', '" . addslashes($botToken) . "');",
+                        $configContent
+                    );
+
+                    // Update test chat ID
+                    $configContent = preg_replace(
+                        "/define\('TELEGRAM_TEST_CHAT_ID', '[^']*'\);/",
+                        "define('TELEGRAM_TEST_CHAT_ID', '" . addslashes($testChatId) . "');",
+                        $configContent
+                    );
+
+                    // Update notifications enabled
+                    $configContent = preg_replace(
+                        "/define\('TELEGRAM_NOTIFICATIONS_ENABLED', (true|false)\);/",
+                        "define('TELEGRAM_NOTIFICATIONS_ENABLED', " . $notificationsEnabled . ");",
+                        $configContent
+                    );
+
+                    file_put_contents($configFile, $configContent);
+                    $success = '✅ Pengaturan bot berhasil diperbarui!';
+
+                } catch (Exception $e) {
+                    $error = '❌ Gagal memperbarui pengaturan: ' . $e->getMessage();
+                }
+            }
+        }
+
+        // Load current settings
+        require_once 'config/telegram.php';
+        $currentSettings = [
+            'bot_token' => TELEGRAM_BOT_TOKEN,
+            'test_chat_id' => TELEGRAM_TEST_CHAT_ID,
+            'notifications_enabled' => TELEGRAM_NOTIFICATIONS_ENABLED
+        ];
+
+        // Get bot info if token is set
+        $botInfo = null;
+        if (!empty($currentSettings['bot_token']) && $currentSettings['bot_token'] !== 'YOUR_BOT_TOKEN_HERE') {
+            try {
+                require_once 'utils/TelegramBot.php';
+                $telegramBot = new TelegramBot();
+                $botInfo = $telegramBot->testConnection();
+            } catch (Exception $e) {
+                // Ignore errors
+            }
+        }
+
+        // Get recent log entries
+        $logFile = TELEGRAM_LOG_FILE;
+        $recentLogs = [];
+        if (file_exists($logFile)) {
+            $logs = array_slice(file($logFile), -20); // Get last 20 lines
+            $recentLogs = array_reverse($logs); // Show newest first
+        }
+
+        // Prepare data for view
+        $data = [
+            'title' => 'Pengaturan Telegram Bot',
+            'extra_css' => ['admin-dashboard.css'],
+            'extra_js' => ['admin-dashboard.js'],
+            'currentSettings' => $currentSettings,
+            'botInfo' => $botInfo,
+            'recentLogs' => $recentLogs,
+            'error' => $error,
+            'success' => $success
+        ];
+
+        // Debug: Log data being passed to view
+        error_log("AdminController::telegramSettings - Data keys: " . json_encode(array_keys($data)));
+
+        // Extract data to make variables available in view
+        extract($data);
+
+        // Load view
+        ob_start();
+        $viewPath = VIEWS_DIR . '/admin/telegram-settings.php';
+        if (!file_exists($viewPath)) {
+            error_log("AdminController::telegramSettings - View file not found: {$viewPath}");
+            die("View file not found: {$viewPath}");
+        }
+        include $viewPath;
+        $content = ob_get_clean();
+
+        // Load admin layout
+        include VIEWS_DIR . '/layouts/admin.php';
     }
 
     /**
@@ -902,14 +1122,13 @@ class AdminController {
         ];
 
         // Create letter request with admin as user (system-generated)
-        $letterRequestData = [
+        $formData = array_merge([
             'user_id' => getCurrentUserId(), // Admin creating the request
             'letter_type_id' => 3, // SPN - Surat Pengantar Nikah
-            'request_data' => json_encode($requestData),
             'status' => 'pending'
-        ];
+        ], $requestData);
 
-        if ($this->letterRequestModel->create($letterRequestData)) {
+        if ($this->letterRequestModel->createWithDataSeparation($formData)) {
             $_SESSION['success'] = 'Surat pengantar berhasil dibuat';
         } else {
             $_SESSION['error'] = 'Gagal membuat surat pengantar';
@@ -984,6 +1203,77 @@ class AdminController {
     }
 
     /**
+     * API endpoint to get filtered letter requests for export page
+     */
+    public function getExportData() {
+        try {
+            requireAuth('admin');
+
+            // Get filter parameters
+            $dari_tanggal = $_GET['dari_tanggal'] ?? '';
+            $sampai_tanggal = $_GET['sampai_tanggal'] ?? '';
+
+            // Build filters
+            $filters = [];
+            if (!empty($dari_tanggal)) $filters['dari_tanggal'] = $dari_tanggal;
+            if (!empty($sampai_tanggal)) $filters['sampai_tanggal'] = $sampai_tanggal;
+
+            // Get filtered requests
+            $requests = $this->letterRequestModel->getAllForExport($filters);
+
+            // Format data for frontend
+            $formattedData = array_map(function($request) {
+                return [
+                    'id' => $request['id'],
+                    'tanggal' => date('d/m/Y', strtotime($request['created_at'])),
+                    'jenisSurat' => $request['letter_type_name'],
+                    'pemohon' => $request['user_full_name'],
+                    'nik' => $request['nik'] ?? $request['user_nik'] ?? '-',
+                    'status' => $request['status'],
+                    'jenisColor' => $this->getStatusColor($request['status']),
+                    'letter_type_code' => $request['letter_type_code']
+                ];
+            }, $requests);
+
+            // Return JSON response
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'data' => $formattedData,
+                'total' => count($formattedData)
+            ]);
+
+        } catch (Exception $e) {
+            // Return error response
+            header('Content-Type: application/json');
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Server error: ' . $e->getMessage(),
+                'data' => [],
+                'total' => 0
+            ]);
+        }
+        exit;
+    }
+
+    /**
+     * Get color class for status
+     */
+    private function getStatusColor($status) {
+        switch ($status) {
+            case 'approved':
+                return 'green-500';
+            case 'pending':
+                return 'primary';
+            case 'rejected':
+                return 'red-500';
+            default:
+                return 'gray-500';
+        }
+    }
+
+    /**
      * Render view with layout
      */
     private function renderView($view, $data = []) {
@@ -1054,7 +1344,77 @@ class AdminController {
         $baseData = $this->getBasePDFData($request, $letterType);
         $templateSpecificData = $this->getTemplateSpecificData($request);
 
-        return array_merge($baseData, $templateSpecificData);
+        // Add user profile data for complete letter information
+        $userProfileData = $this->getUserProfileData($request['user_id']);
+
+        return array_merge($baseData, $templateSpecificData, $userProfileData);
+    }
+
+    /**
+     * Calculate age from birth date
+     * @param string $birthDate
+     * @return int
+     */
+    private function calculateAge($birthDate) {
+        if (empty($birthDate)) return '';
+
+        try {
+            $birth = new DateTime($birthDate);
+            $now = new DateTime();
+            return $now->diff($birth)->y;
+        } catch (Exception $e) {
+            return '';
+        }
+    }
+
+    /**
+     * Get user profile data for PDF generation
+     * @param int $userId
+     * @return array
+     */
+    private function getUserProfileData($userId) {
+        try {
+            $user = $this->userModel->findById($userId);
+
+            return [
+                // Complete user profile data - use request data as fallback
+                'full_name' => $user['full_name'] ?? '',
+                'nik' => $user['nik'] ?? '',
+                'gender' => $user['gender'] ?? 'Laki-laki',
+                'birth_place' => $user['birth_place'] ?? '-',
+                'birth_date' => $user['birth_date'] ?? null,
+                'religion' => $user['religion'] ?? 'Islam',
+                'occupation' => $user['occupation'] ?? 'Wiraswasta',
+                'nationality' => $user['nationality'] ?? 'WNI',
+                'marital_status' => $user['marital_status'] ?? '',
+                'phone' => $user['phone'] ?? '',
+                'email' => $user['email'] ?? '',
+
+                // Address information
+                'address' => $user['address'] ?? '',
+                'rt' => $user['rt'] ?? '',
+                'rw' => $user['rw'] ?? '',
+                'village' => $user['village'] ?? '',
+                'district' => $user['district'] ?? '',
+                'city' => $user['city'] ?? '',
+                'province' => $user['province'] ?? '',
+                'postal_code' => $user['postal_code'] ?? '',
+            ];
+        } catch (Exception $e) {
+            error_log("Error getting user profile data: " . $e->getMessage());
+            return [
+                // Default fallback values
+                'full_name' => '',
+                'nik' => '',
+                'gender' => 'Laki-laki',
+                'birth_place' => '-',
+                'birth_date' => null,
+                'religion' => 'Islam',
+                'occupation' => 'Wiraswasta',
+                'nationality' => 'WNI',
+                'address' => '',
+            ];
+        }
     }
 
     /**
@@ -1098,25 +1458,42 @@ class AdminController {
      */
     private function getTemplateSpecificData($request) {
         return [
-            // Domisili data
-            'alamat_domisili' => $request['address'] ?? '',
+            // Domisili data - use merged data from request (request_data + additional_data)
+            'alamat_domisili' => $request['alamat_domisili'] ?? $request['address'] ?? '',
 
-            // General purpose
-            'keperluan' => DEFAULT_KEPERLUAN,
+            // General purpose - use from merged request data
+            'keperluan' => $request['keperluan'] ?? DEFAULT_KEPERLUAN,
 
-            // Business certificate data
-            'nama_usaha' => BUSINESS_CERTIFICATE_PLACEHOLDER,
-            'mulai_usaha' => BUSINESS_START_YEAR,
-            'alamat_usaha' => $request['address'] ?? '',
-            'tujuan' => BUSINESS_PURPOSE,
+            // Business certificate data - use merged data
+            'nama_usaha' => $request['nama_usaha'] ?? BUSINESS_CERTIFICATE_PLACEHOLDER,
+            'jenis_usaha' => $request['jenis_usaha'] ?? '',
+            'mulai_usaha' => $request['mulai_usaha'] ?? BUSINESS_START_YEAR,
+            'alamat_usaha' => $request['alamat_usaha'] ?? $request['address'] ?? '',
+            'luas_usaha' => $request['luas_usaha'] ?? '',
+            'tujuan' => $request['tujuan'] ?? BUSINESS_PURPOSE,
+            'penghasilan' => $request['penghasilan'] ?? '',
 
-            // Scholarship recommendation data
-            'nama_ayah' => '-',
-            'sekolah' => SCHOOL_PLACEHOLDER,
-            'nis_nim' => '-',
-            'semester' => '-',
-            'jurusan' => '-',
-            'nama_beasiswa' => DEFAULT_NAMA_BEASISWA,
+            // Scholarship recommendation data - use merged data
+            'nama_ayah' => $request['nama_ayah'] ?? '-',
+            'sekolah' => $request['sekolah'] ?? SCHOOL_PLACEHOLDER,
+            'nis_nim' => $request['nis_nim'] ?? '-',
+            'semester' => $request['semester'] ?? '-',
+            'jurusan' => $request['jurusan'] ?? '-',
+            'nama_beasiswa' => $request['nama_beasiswa'] ?? DEFAULT_NAMA_BEASISWA,
+
+            // Marriage data - use merged data
+            'nik_pasangan' => $request['nik_pasangan'] ?? '',
+            'nama_pasangan' => $request['nama_pasangan'] ?? '',
+
+            // Event data - use merged data
+            'nama_kegiatan' => $request['nama_kegiatan'] ?? '',
+            'tanggal_kegiatan' => $request['tanggal_kegiatan'] ?? '',
+            'waktu_kegiatan' => $request['waktu_kegiatan'] ?? '',
+            'tempat_kegiatan' => $request['tempat_kegiatan'] ?? '',
+            'hiburan' => $request['hiburan'] ?? '',
+
+            // Calculate age if birth_date is available
+            'umur' => isset($request['birth_date']) ? $this->calculateAge($request['birth_date']) : '',
 
             // Business permit data
             'jenis_usaha' => DEFAULT_JENIS_USAHA,
@@ -1150,7 +1527,20 @@ class AdminController {
      * @return string
      */
     private function getTemplateName($letterTypeName) {
-        return strtolower(str_replace(' ', '_', $letterTypeName));
+        // Map letter type names to actual template filenames
+        $templateMap = [
+            'Surat Keterangan Domisili' => 'surat_keterangan_domisili',
+            'Surat Keterangan Usaha' => 'surat_keterangan_usaha',
+            'Surat Keterangan Tidak Mampu' => 'surat_keterangan_tidak_mampu',
+            'Surat Pengantar Nikah' => 'surat_keterangan', // Use general template
+            'Surat Izin Kegiatan' => 'surat_izin_kegiatan',
+            'Surat Izin Usaha' => 'surat_izin_usaha',
+            'Surat Keterangan Belum Menikah' => 'surat_keterangan_belum_menikah',
+            'Surat Rekomendasi Beasiswa' => 'surat_rekomendasi_beasiswa',
+        ];
+
+        // Return mapped template or fallback to converted name
+        return $templateMap[$letterTypeName] ?? strtolower(str_replace(' ', '_', $letterTypeName));
     }
 
     /**

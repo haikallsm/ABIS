@@ -21,14 +21,42 @@ define('SESSION_LIFETIME', 3600); // 1 hour in seconds
 function startSession() {
     if (session_status() === PHP_SESSION_NONE) {
         session_name(SESSION_NAME);
+
+        // Set session cookie parameters before starting
+        session_set_cookie_params([
+            'lifetime' => SESSION_LIFETIME,
+            'path' => '/',
+            'domain' => '',
+            'secure' => false, // Set to true for HTTPS
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+
         session_start();
 
-        // Regenerate session ID periodically for security
+        // Regenerate session ID periodically for security (but preserve user session)
         if (!isset($_SESSION['created'])) {
             $_SESSION['created'] = time();
         } else if (time() - $_SESSION['created'] > SESSION_LIFETIME) {
+            // Preserve user data during regeneration
+            $userData = [];
+            if (isset($_SESSION['user_id'])) {
+                $userData = [
+                    'user_id' => $_SESSION['user_id'],
+                    'username' => $_SESSION['username'] ?? '',
+                    'email' => $_SESSION['email'] ?? '',
+                    'full_name' => $_SESSION['full_name'] ?? '',
+                    'user_role' => $_SESSION['user_role'] ?? ''
+                ];
+            }
+
             session_regenerate_id(true);
             $_SESSION['created'] = time();
+
+            // Restore user data
+            if (!empty($userData)) {
+                $_SESSION = array_merge($_SESSION, $userData);
+            }
         }
     }
 }
