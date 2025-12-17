@@ -12,11 +12,14 @@ if (!defined('ROOT_DIR')) {
 }
 
 // Bot Token dari BotFather
-define('TELEGRAM_BOT_TOKEN', '8226806035:AAHLnh4Q6NNfHb-ASoUQPD-GNspmMrovhMU');
+// Dapatkan dari @BotFather di Telegram
+define('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE');
 
 // Chat ID untuk testing (opsional, bisa dikosongkan)
 // Contoh: '123456789' (chat ID Telegram Anda)
-define('TELEGRAM_TEST_CHAT_ID', '1743293318');
+// Untuk mendapatkan chat ID, kirim pesan ke bot dan akses:
+// https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates
+define('TELEGRAM_TEST_CHAT_ID', 'YOUR_CHAT_ID_HERE');
 
 // API URL Telegram (built from base URL + bot token)
 define('TELEGRAM_BOT_API_URL', 'https://api.telegram.org/bot' . TELEGRAM_BOT_TOKEN . '/');
