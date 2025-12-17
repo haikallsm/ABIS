@@ -72,6 +72,9 @@ test-results/
 deploy.sh
 *.tar.gz
 
+# Generated PDFs (created dynamically)
+generated_pdfs/
+
 # Local development
 .local
 dev.sh
