@@ -867,7 +867,7 @@ class AdminController {
                 // Generate PDF
                 $this->generateLetterPDF($requestId);
 
-                // Send Telegram notification
+                // Send Telegram notification with PDF
                 try {
                     require_once 'utils/TelegramBot.php';
                     $telegramBot = new TelegramBot();
@@ -876,7 +876,13 @@ class AdminController {
                     // Get request data with user info
                     $requestData = $this->letterRequestModel->findById($requestId);
                     if ($requestData) {
-                        $telegramBot->sendApprovalNotification($requestData, $adminName);
+                        // Get PDF file path if available
+                        $pdfFilePath = null;
+                        if (!empty($requestData['generated_file'])) {
+                            $pdfFilePath = UPLOADS_DIR . '/' . $requestData['generated_file'];
+                        }
+
+                        $telegramBot->sendApprovalNotification($requestData, $adminName, $pdfFilePath);
                     }
                 } catch (Exception $e) {
                     error_log('Telegram notification error (approval): ' . $e->getMessage());
@@ -1373,32 +1379,14 @@ class AdminController {
 
         $userProfile = $this->getUserProfileData($request['user_id']);
 
-        // Smart merge: Form data takes precedence, but fall back to user profile data if form data is empty
-        // This ensures that data entered during letter request is used, but profile data fills in gaps
-        $mergedRequest = [];
-
-        // Start with user profile data as base
-        foreach ($userProfile as $key => $value) {
-            $mergedRequest[$key] = $value;
-        }
-
-        // Add request metadata
-        foreach ($request as $key => $value) {
-            $mergedRequest[$key] = $value;
-        }
-
-        // Add additional data
-        foreach ($flattenedAdditionalData as $key => $value) {
-            $mergedRequest[$key] = $value;
-        }
-
-        // Add form data with HIGHEST priority (only override if form data is not empty)
-        foreach ($requestData as $key => $value) {
-            // Use form data unless it's empty and profile has a value
-            if (!empty($value) || !isset($mergedRequest[$key]) || empty($mergedRequest[$key])) {
-                $mergedRequest[$key] = $value;
-            }
-        }
+        // Prioritize user input data over profile data
+        // Order: user profile (fallback) -> request data -> form input data -> additional data
+        $mergedRequest = array_merge(
+            $userProfile,            // Fallback data from user profile
+            $request,                // Request metadata
+            $requestData,            // Primary user input data from form
+            $flattenedAdditionalData // Additional form data
+        );
 
         $baseData = $this->getBasePDFData($mergedRequest, $letterType);
         $templateSpecificData = $this->getTemplateSpecificData($mergedRequest);

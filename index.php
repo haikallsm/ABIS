@@ -205,6 +205,12 @@ $router->add('GET', '/requests/:id/download', function($params) {
     $userController->downloadRequest($params['id']);
 });
 
+$router->add('GET', '/requests/:id/preview', function($params) {
+    global $userController;
+    requireAuth('user');
+    $userController->previewRequest($params['id']);
+});
+
 // Admin routes
 $router->add('GET', '/admin/dashboard', function() {
     global $adminController;

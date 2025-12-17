@@ -1,9 +1,10 @@
 RewriteEngine On
 
-# Handle existing files and directories first
-RewriteCond %{REQUEST_FILENAME} -f [OR]
+# Handle Angular and React History mode
+RewriteCond %{REQUEST_FILENAME} -s [OR]
+RewriteCond %{REQUEST_FILENAME} -l [OR]
 RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
+RewriteRule ^.*$ - [NC,L]
 
-# Redirect everything to index.php
-RewriteRule ^ index.php [QSA,L]
+# Handle PHP requests
+RewriteRule ^(.*)$ index.php [QSA,L]
