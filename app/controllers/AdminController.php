@@ -1373,12 +1373,32 @@ class AdminController {
 
         $userProfile = $this->getUserProfileData($request['user_id']);
 
-        $mergedRequest = array_merge(
-            $userProfile,            
-            $request,                
-            $requestData,            
-            $flattenedAdditionalData 
-        );
+        // Smart merge: Form data takes precedence, but fall back to user profile data if form data is empty
+        // This ensures that data entered during letter request is used, but profile data fills in gaps
+        $mergedRequest = [];
+
+        // Start with user profile data as base
+        foreach ($userProfile as $key => $value) {
+            $mergedRequest[$key] = $value;
+        }
+
+        // Add request metadata
+        foreach ($request as $key => $value) {
+            $mergedRequest[$key] = $value;
+        }
+
+        // Add additional data
+        foreach ($flattenedAdditionalData as $key => $value) {
+            $mergedRequest[$key] = $value;
+        }
+
+        // Add form data with HIGHEST priority (only override if form data is not empty)
+        foreach ($requestData as $key => $value) {
+            // Use form data unless it's empty and profile has a value
+            if (!empty($value) || !isset($mergedRequest[$key]) || empty($mergedRequest[$key])) {
+                $mergedRequest[$key] = $value;
+            }
+        }
 
         $baseData = $this->getBasePDFData($mergedRequest, $letterType);
         $templateSpecificData = $this->getTemplateSpecificData($mergedRequest);
