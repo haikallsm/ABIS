@@ -1,0 +1,58 @@
+# Docker Compose for Testing/CI Environment
+version: '3.8'
+
+services:
+  # PHP Application for Testing
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: surat-in-test-app
+    environment:
+      - APP_ENV=testing
+      - DB_HOST=db
+      - DB_NAME=surat_in_test
+    volumes:
+      - ..:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - test-network
+
+  # Test Database
+  db:
+    image: mysql:8.0
+    container_name: surat-in-test-db
+    environment:
+      MYSQL_ROOT_PASSWORD: test_root_password
+      MYSQL_DATABASE: surat_in_test
+      MYSQL_USER: test_user
+      MYSQL_PASSWORD: test_password
+    ports:
+      - "3308:3306"
+    volumes:
+      - test_db_data:/var/lib/mysql
+      - ../database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - test-network
+
+  # Selenium for E2E Testing (optional)
+  selenium:
+    image: selenium/standalone-chrome:latest
+    container_name: surat-in-selenium
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    volumes:
+      - /dev/shm:/dev/shm
+    networks:
+      - test-network
+
+volumes:
+  test_db_data:
+    driver: local
+
+networks:
+  test-network:
+    driver: bridge

@@ -7,7 +7,7 @@
                     <i class="fas fa-file-contract text-white text-2xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold text-natural">ABIS</h1>
+                    <h1 class="text-2xl font-bold text-natural">Surat - In</h1>
                     <p class="text-natural-light text-sm">Aplikasi Desa Digital - Pemerintah Desa</p>
                 </div>
             </div>

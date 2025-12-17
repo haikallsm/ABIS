@@ -1,0 +1,71 @@
+# Dockerfile for Surat-In PHP-FPM Application (Production)
+FROM php:8.1-fpm-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    libwebp-dev \
+    libxpm-dev \
+    freetype-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    nodejs \
+    npm \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip opcache
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy composer files first for better caching
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Copy package files
+COPY package.json package-lock.json ./
+RUN npm ci && npm run build && npm cache clean --force
+
+# Copy application code
+COPY . /var/www/html/
+
+# Create necessary directories
+RUN mkdir -p /var/www/html/public/uploads \
+    && mkdir -p /var/www/html/logs \
+    && mkdir -p /var/www/html/database
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && chmod -R 775 /var/www/html/public/uploads \
+    && chmod -R 775 /var/www/html/logs
+
+# Configure PHP
+COPY docker/php.ini /usr/local/etc/php/php.ini
+
+# Configure OPcache for production
+RUN echo "opcache.enable=1" >> /usr/local/etc/php/php.ini \
+    && echo "opcache.memory_consumption=256" >> /usr/local/etc/php/php.ini \
+    && echo "opcache.max_accelerated_files=7963" >> /usr/local/etc/php/php.ini \
+    && echo "opcache.revalidate_freq=0" >> /usr/local/etc/php/php.ini \
+    && echo "opcache.enable_cli=1" >> /usr/local/etc/php/php.ini
+
+# Create non-root user
+RUN addgroup -g 1000 www && adduser -D -s /bin/sh -u 1000 -G www www
+
+# Switch to non-root user
+USER www
+
+# Expose port 9000 for PHP-FPM
+EXPOSE 9000
+
+# Start PHP-FPM
+CMD ["php-fpm"]

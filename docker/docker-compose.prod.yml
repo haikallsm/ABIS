@@ -1,0 +1,97 @@
+# Docker Compose for Production Environment
+version: '3.8'
+
+services:
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: surat-in-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../public:/var/www/html/public:ro
+    depends_on:
+      - app
+    networks:
+      - surat-in-network
+
+  # PHP-FPM Application
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.fpm
+    container_name: surat-in-app
+    restart: unless-stopped
+    environment:
+      - APP_ENV=production
+      - DB_HOST=db
+      - DB_NAME=surat_in_db
+      - DB_USER=surat_user
+      - DB_PASS=${DB_PASSWORD}
+    volumes:
+      - ../:/var/www/html:ro
+      - uploads:/var/www/html/public/uploads
+      - logs:/var/www/html/logs
+    depends_on:
+      - db
+    networks:
+      - surat-in-network
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: surat-in-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: surat_in_db
+      MYSQL_USER: surat_user
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ../database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./mysql/my.cnf:/etc/mysql/my.cnf
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - surat-in-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: surat-in-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - surat-in-network
+
+  # SSL Certificate Manager (Let's Encrypt)
+  certbot:
+    image: certbot/certbot
+    container_name: surat-in-certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    command: certonly --webroot -w /var/www/certbot --email admin@surat-in.id --agree-tos --no-eff-email -d yourdomain.com
+
+volumes:
+  db_data:
+    driver: local
+  uploads:
+    driver: local
+  logs:
+    driver: local
+  redis_data:
+    driver: local
+  certbot_conf:
+    driver: local
+  certbot_www:
+    driver: local
+
+networks:
+  surat-in-network:
+    driver: bridge
