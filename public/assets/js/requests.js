@@ -69,7 +69,7 @@ function downloadRequest(requestId) {
 
     // Create a temporary link to trigger download
     const link = document.createElement('a');
-    link.href = `${BASE_URL}/requests/${requestId}/download`;
+    link.href = `${BASE_URL}/api/requests/${requestId}/download`;
     link.download = `surat_${requestId}.pdf`;
     link.style.display = 'none';
 

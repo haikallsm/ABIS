@@ -142,48 +142,34 @@ class UserController {
         $errors = [];
 
         error_log("POST data received: " . json_encode($_POST));
-        error_log("Required fields for letter type {$letterTypeId}: " . json_encode($requiredFields));
 
         foreach ($requiredFields as $field => $config) {
-            $rawValue = $_POST[$field] ?? null;
-            $value = sanitize($rawValue ?? '');
-
-            error_log("Processing field '{$field}': raw='{$rawValue}', sanitized='{$value}', required=" . ($config['required'] ? 'true' : 'false'));
+            $value = sanitize($_POST[$field] ?? '');
 
             // Check if field is required - strict validation
             if ($config['required']) {
                 // Check if field exists in POST data
                 if (!isset($_POST[$field])) {
                     $errors[$field] = "Field '{$config['label']}' tidak ditemukan dalam form";
-                    error_log("Field '{$field}' not found in POST data");
                 }
                 // Check if field is not empty (after trimming whitespace)
                 elseif (empty(trim($_POST[$field]))) {
                     $errors[$field] = "Field '{$config['label']}' wajib diisi";
-                    error_log("Field '{$field}' is empty");
                 }
                 // Additional validation for specific field types
                 elseif ($field === 'nik' && strlen(trim($_POST[$field])) !== 16) {
                     $errors[$field] = "NIK harus 16 digit";
-                    error_log("Field '{$field}' NIK validation failed");
                 }
                 elseif ($field === 'nama' && strlen(trim($_POST[$field])) < 2) {
                     $errors[$field] = "Nama harus minimal 2 karakter";
-                    error_log("Field '{$field}' name validation failed");
                 }
             }
 
             // Only include non-empty values or required fields
             if (!empty($value) || $config['required']) {
                 $requestData[$field] = $value;
-                error_log("Including field '{$field}' with value '{$value}'");
-            } else {
-                error_log("Skipping field '{$field}' - empty and not required");
             }
         }
-
-        error_log("Final requestData: " . json_encode($requestData));
-        error_log("Validation errors: " . json_encode($errors));
 
         // Additional validation for specific field types
         foreach ($_POST as $field => $value) {
@@ -298,58 +284,6 @@ class UserController {
         header('Content-Length: ' . $fileSize);
         header('Cache-Control: private, max-age=0, must-revalidate');
         header('Pragma: public');
-
-        // Clear output buffer
-        ob_clean();
-        flush();
-
-        // Read and output file
-        readfile($filePath);
-        exit;
-    }
-
-    /**
-     * Preview PDF request inline in browser (without download)
-     * @param int $requestId
-     */
-    public function previewRequest($requestId) {
-        requireAuth('user');
-
-        $userId = getCurrentUserId();
-        $request = $this->requestModel->findById($requestId);
-
-        if (!$request || $request['user_id'] != $userId) {
-            http_response_code(404);
-            exit('Request tidak ditemukan');
-        }
-
-        if ($request['status'] !== 'approved') {
-            http_response_code(403);
-            exit('Surat belum disetujui');
-        }
-
-        if (empty($request['generated_file'])) {
-            http_response_code(404);
-            exit('File tidak tersedia');
-        }
-
-        $filePath = UPLOADS_DIR . '/' . $request['generated_file'];
-
-        if (!file_exists($filePath)) {
-            http_response_code(404);
-            exit('File tidak ditemukan');
-        }
-
-        // Get file info
-        $fileSize = filesize($filePath);
-
-        // Set headers for inline preview (not download)
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: inline; filename="' . basename($filePath) . '"');
-        header('Content-Length: ' . $fileSize);
-        header('Cache-Control: private, max-age=0, must-revalidate');
-        header('Pragma: public');
-        header('Accept-Ranges: bytes');
 
         // Clear output buffer
         ob_clean();
@@ -607,11 +541,6 @@ class UserController {
             2 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // SKU
             3 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nik_pasangan', 'nama_pasangan', 'keperluan'], // SPN
             4 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'penghasilan', 'keperluan'], // SKTM
-            5 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'keperluan'], // SK
-            6 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'keperluan'], // SKBM
-            7 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'sekolah', 'nis_nim', 'jurusan', 'semester', 'nama_beasiswa', 'nama_ayah', 'keperluan'], // SRB
-            8 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_usaha', 'jenis_usaha', 'alamat_usaha', 'keperluan'], // SIU
-            9 => ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'pekerjaan', 'alamat', 'nama_kegiatan', 'tanggal_kegiatan', 'waktu_kegiatan', 'tempat_kegiatan', 'hiburan', 'keperluan'], // SIK
         ];
 
         $result = [];

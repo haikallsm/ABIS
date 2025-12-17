@@ -106,24 +106,19 @@
                     <td style="text-align: center;">
                         <p><?= htmlspecialchars($desa ?? 'Kleteran') ?>, <?= date('d F Y') ?></p>
                         <p>Kepala Desa <?= htmlspecialchars($desa ?? 'Kleteran') ?></p>
-
-                        <div style="position: relative; width: 100%; height: 120px; margin-bottom: 20px;">
-                            <!-- Tanda Tangan -->
-                            <div style="position: absolute; left: 50%; top: 10px; transform: translateX(-50%); width: 150px; height: 60px;">
-                                <img src="/templates/ttd.png" style="width: 100%; height: auto; opacity: 0.9;">
-                            </div>
-
-                            <div style="position: absolute; left: 10px; top: -10px; width: 100px; height: 60px; opacity: 0.8;">
-                                <img src="/templates/stempel.png" style="width: 100%; height: auto;">
-                            </div>
-
-                            <br><br><br>
-                        </div>
-
+                        <br><br><br><br>
                         <p><strong><u><?= htmlspecialchars($kepala_desa ?? 'MUHAMMAD WARIS ZAINAL, S.Pd.') ?></u></strong></p>
                     </td>
                 </tr>
             </table>
+        </div>
+
+        <div style="position: absolute; bottom: 50px; right: 50px; text-align: center;">
+            <img src="/templates/stempel.png" width="100" height="auto" alt="Stempel" style="opacity: 0.7;">
+        </div>
+
+        <div style="position: absolute; bottom: 20px; right: 50px; text-align: center;">
+            <img src="/templates/ttd.png" width="120" height="auto" alt="Tanda Tangan" style="opacity: 0.8;">
         </div>
 
     </div>

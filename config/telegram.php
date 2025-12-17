@@ -40,8 +40,7 @@ define('TELEGRAM_MESSAGE_APPROVED', "✅ *Permohonan Surat Disetujui*
 • Tanggal Persetujuan: %APPROVED_DATE%
 • Disetujui Oleh: %ADMIN_NAME%
 
-📎 File PDF surat akan segera dikirim melalui pesan berikutnya.
-📥 Atau dapat diunduh melalui dashboard sistem.");
+📎 File PDF surat dapat diunduh melalui dashboard sistem.");
 
 define('TELEGRAM_MESSAGE_REJECTED', "❌ *Permohonan Surat Ditolak*
 

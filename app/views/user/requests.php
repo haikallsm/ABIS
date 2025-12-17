@@ -199,17 +199,17 @@ $extra_js = ['requests'];
                                         </td>
                                         <td class="px-5 py-4 border-b cream-border text-sm">
                                             <div class="flex items-center space-x-2">
-                                                <?php if ($request['status'] === 'approved' || $request['status'] === 'completed'): ?>
-                                                <a href="<?php echo BASE_URL; ?>/requests/<?php echo $request['id']; ?>/preview"
-                                                        target="_blank"
-                                                        title="Preview PDF"
-                                                        class="action-button text-info hover:text-dark transition p-2 rounded-lg hover:bg-info/10">
+                                                <button onclick="viewRequest(<?php echo $request['id']; ?>)"
+                                                        title="Lihat Detail"
+                                                        class="action-button text-primary hover:text-dark transition p-2 rounded-lg hover:bg-primary/10">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                                     </svg>
-                                                </a>
+                                                </button>
+                                                <?php if ($request['status'] === 'approved' || $request['status'] === 'completed'): ?>
                                                 <button onclick="downloadRequest(<?php echo $request['id']; ?>)"
-                                                        title="Download PDF"
+                                                        title="Download"
                                                         class="action-button text-secondary hover:text-dark transition p-2 rounded-lg hover:bg-secondary/10">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
