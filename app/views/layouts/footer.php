@@ -8,7 +8,7 @@
                         <i class="fas fa-file-contract text-primary text-lg"></i>
                     </div>
                     <div>
-                        <span class="font-bold text-xl">ABIS</span>
+                        <span class="font-bold text-xl">Surat - In</span>
                         <p class="text-gray-400 text-sm">Aplikasi Desa Digital</p>
                     </div>
                 </div>
@@ -37,7 +37,7 @@
             <div>
                 <h3 class="font-semibold mb-4">Legal</h3>
                 <div class="space-y-2 text-sm text-gray-400">
-                    <p>© 2025 ABIS</p>
+                    <p>© 2025 Surat - In</p>
                     <p>Sistem Terintegrasi</p>
                     <p>Versi 1.0.0</p>
                 </div>
@@ -45,7 +45,7 @@
         </div>
         <div class="border-t border-gray-700 mt-8 pt-8 text-center">
             <p class="text-gray-400 text-sm">
-                Layanan Resmi ABIS - Aplikasi Desa Digital Terintegrasi
+                Layanan Resmi Surat - In - Aplikasi Desa Digital Terintegrasi
             </p>
         </div>
     </div>

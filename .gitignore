@@ -7,6 +7,9 @@
 .env.staging
 *.env
 
+# Telegram Configuration (contains sensitive API tokens)
+config/telegram.php
+
 # Dependencies
 node_modules/
 vendor/

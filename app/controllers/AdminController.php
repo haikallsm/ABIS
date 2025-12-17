@@ -867,16 +867,27 @@ class AdminController {
                 // Generate PDF
                 $this->generateLetterPDF($requestId);
 
-                // Send Telegram notification
+                // Send Telegram notification with PDF
                 try {
-                    require_once 'utils/TelegramBot.php';
-                    $telegramBot = new TelegramBot();
-                    $adminName = $this->userModel->findById($adminId)['full_name'] ?? 'Admin';
+                    if (file_exists('config/telegram.php')) {
+                        require_once 'utils/TelegramBot.php';
+                        $telegramBot = new TelegramBot();
+                        $adminName = $this->userModel->findById($adminId)['full_name'] ?? 'Admin';
 
-                    // Get request data with user info
-                    $requestData = $this->letterRequestModel->findById($requestId);
-                    if ($requestData) {
-                        $telegramBot->sendApprovalNotification($requestData, $adminName);
+                        // Get request data with user info
+                        $requestData = $this->letterRequestModel->findById($requestId);
+                        if ($requestData) {
+                            // Get PDF file path if available
+                            $pdfFilePath = null;
+                            if (!empty($requestData['generated_file'])) {
+                                $pdfFilePath = UPLOADS_DIR . '/' . $requestData['generated_file'];
+                            }
+
+                            $result = $telegramBot->sendApprovalNotification($requestData, $adminName, $pdfFilePath);
+                            error_log('Telegram notification sent: ' . ($result['ok'] ? 'SUCCESS' : 'FAILED - ' . ($result['description'] ?? 'Unknown error')));
+                        }
+                    } else {
+                        error_log('Telegram config not found - skipping notification');
                     }
                 } catch (Exception $e) {
                     error_log('Telegram notification error (approval): ' . $e->getMessage());
@@ -978,18 +989,22 @@ class AdminController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_POST['test_bot'])) {
                 // Test bot connection
-                try {
-                    require_once 'utils/TelegramBot.php';
-                    $telegramBot = new TelegramBot();
-                    $result = $telegramBot->testConnection();
+                if (!file_exists('config/telegram.php')) {
+                    $error = '❌ File konfigurasi telegram.php belum ada. Silakan copy dari telegram.php.example dan isi token bot Anda.';
+                } else {
+                    try {
+                        require_once 'utils/TelegramBot.php';
+                        $telegramBot = new TelegramBot();
+                        $result = $telegramBot->testConnection();
 
-                    if ($result['ok']) {
-                        $success = '✅ Koneksi bot berhasil! Bot dapat menerima pesan.';
-                    } else {
-                        $error = '❌ Koneksi bot gagal: ' . ($result['description'] ?? 'Unknown error');
+                        if ($result['ok']) {
+                            $success = '✅ Koneksi bot berhasil! Bot dapat menerima pesan.';
+                        } else {
+                            $error = '❌ Koneksi bot gagal: ' . ($result['description'] ?? 'Unknown error');
+                        }
+                    } catch (Exception $e) {
+                        $error = '❌ Error: ' . $e->getMessage();
                     }
-                } catch (Exception $e) {
-                    $error = '❌ Error: ' . $e->getMessage();
                 }
             } elseif (isset($_POST['update_settings'])) {
                 // Update bot settings
@@ -1373,11 +1388,13 @@ class AdminController {
 
         $userProfile = $this->getUserProfileData($request['user_id']);
 
+        // Prioritize user input data over profile data
+        // Order: user profile (fallback) -> request data -> form input data -> additional data
         $mergedRequest = array_merge(
-            $userProfile,            
-            $request,                
-            $requestData,            
-            $flattenedAdditionalData 
+            $userProfile,            // Fallback data from user profile
+            $request,                // Request metadata
+            $requestData,            // Primary user input data from form
+            $flattenedAdditionalData // Additional form data
         );
 
         $baseData = $this->getBasePDFData($mergedRequest, $letterType);

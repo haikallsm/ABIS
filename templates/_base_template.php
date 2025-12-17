@@ -1,142 +1,78 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Template Base</title>
-    <style>
-        body { font-family: 'Times New Roman', serif; font-size: 10pt; line-height: 1.3; }
+<?php
+/**
+ * Template Base - Helper Functions for Letter Templates
+ * ABIS - Aplikasi Desa Digital
+ */
 
-        table { width: 100%; border-collapse: collapse; }
-
-        td { vertical-align: top; }
-
-        /* Style khusus Kop */
-        .kop-container {
-            width: 100%;
-            border-bottom: 4px double #000; /* Garis ganda tebal */
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        .kop-logo { width: 120px; text-align: center; }
-        .kop-text { text-align: center; }
-        .kop-text h1 { margin: 0; font-size: 10pt; font-weight: bold; text-transform: uppercase; }
-        .kop-text h2 { margin: 0; font-size: 12pt; font-weight: bold; text-transform: uppercase; }
-        .kop-text h3 { margin: 0; font-size: 14pt; font-weight: bold; text-transform: uppercase; }
-        .kop-text p { margin: 0; font-size: 9pt; font-style: italic; }
-    </style>
-</head>
-<body>
-
-    <!-- Kop Surat -->
-    <div class="kop-container">
-        <table>
-            <tr>
-                <td class="kop-logo"><img src="/templates/logo.png" width="120" height="auto" alt="Logo"></td>
-                <td class="kop-text">
-                    <h1>PEMERINTAH KABUPATEN <?= strtoupper($kabupaten ?? 'Magelang') ?></h1>
-                    <h2>KECAMATAN <?= strtoupper($kecamatan ?? 'Grabag') ?></h2>
-                    <h3>DESA <?= strtoupper($desa ?? 'Kleteran') ?></h3>
-                    <p><?= $alamat_desa ?? 'Jl. Telaga Bleder Km.1 Grabag Magelang' ?></p>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <!-- Konten Surat -->
-    <div class="content">
-
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; text-decoration: underline; text-transform: uppercase;">SURAT IZIN KEGIATAN / KERAMAIAN</h3>
-            <p style="margin: 0;">Nomor: <?= $letter_number ?? '...../...../...../.....' ?></p>
-        </div>
-
-        <p>Yang bertanda tangan dibawah ini Kepala Desa <?= htmlspecialchars($desa ?? 'Kleteran') ?>, Kecamatan <?= htmlspecialchars($kecamatan ?? 'Grabag') ?> memberikan <strong>IZIN / REKOMENDASI</strong> kepada:</p>
-
-        <table style="margin-left: 20px; width: 95%;">
-            <tr>
-                <td width="180">Nama Penanggung Jawab</td>
-                <td>: <strong><?= strtoupper($nama ?? '') ?></strong></td>
-            </tr>
-            <tr>
-                <td>NIK</td>
-                <td>: <?= $nik ?? '' ?></td>
-            </tr>
-            <tr>
-                <td>Umur</td>
-                <td>: <?= $umur ?? '...' ?> Tahun</td>
-            </tr>
-            <tr>
-                <td>Pekerjaan</td>
-                <td>: <?= strtoupper($pekerjaan ?? 'WIRASWASTA') ?></td>
-            </tr>
-            <tr>
-                <td>Alamat</td>
-                <td>: <?= strtoupper($alamat ?? '') ?></td>
-            </tr>
-        </table>
-
-        <p>Untuk menyelenggarakan kegiatan/acara dengan rincian sebagai berikut:</p>
-
-        <table style="margin-left: 20px; width: 95%;">
-            <tr>
-                <td width="180">Nama Kegiatan</td>
-                <td>: <strong><?= strtoupper($nama_kegiatan ?? 'HAJATAN PERNIKAHAN') ?></strong></td>
-            </tr>
-            <tr>
-                <td>Hari, Tanggal</td>
-                <td>: <?= $hari_kegiatan ?? 'Minggu' ?>, <?= $tanggal_kegiatan ?? date('d-m-Y') ?></td>
-            </tr>
-            <tr>
-                <td>Waktu</td>
-                <td>: <?= $waktu_kegiatan ?? '08.00 WIB s/d Selesai' ?></td>
-            </tr>
-            <tr>
-                <td>Tempat</td>
-                <td>: <?= strtoupper($tempat_kegiatan ?? $alamat ?? '') ?></td>
-            </tr>
-            <tr>
-                <td>Hiburan (Jika ada)</td>
-                <td>: <?= strtoupper($hiburan ?? '-') ?></td>
-            </tr>
-        </table>
-
-        <p>Pemberian izin ini disertai dengan persyaratan yang harus dipatuhi:</p>
-
-        <ol style="margin-top: 0;">
-            <li>Bertanggung jawab penuh atas keamanan dan ketertiban selama kegiatan berlangsung.</li>
-            <li>Menjaga kebersihan lingkungan dan tidak mengganggu fasilitas umum.</li>
-            <li>Tidak menyajikan minuman keras (miras), narkoba, dan hal-hal yang melanggar norma agama/hukum.</li>
-            <li>Apabila kegiatan berskala besar/menggunakan jalan umum, wajib berkoordinasi dengan pihak Kepolisian (Polsek) dan Babinsa setempat.</li>
-            <li>Izin ini dapat dibatalkan sewaktu-waktu jika pemegang izin melanggar ketentuan di atas.</li>
-        </ol>
-
-        <p>Demikian Surat Izin ini diberikan untuk dapat dipergunakan sebagaimana mestinya.</p>
-
-    </div>
-
-    <!-- Tanda Tangan -->
-    <?php
-    // Konversi Tanggal ke Bahasa Indonesia
+// Fungsi helper untuk format tanggal Indonesia
+function formatTanggalIndonesia($tanggal = null) {
     $bulanIndo = [
         1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
-    $tanggal_sekarang = date('d') . ' ' . $bulanIndo[(int)date('m')] . ' ' . date('Y');
 
-    // Pastikan variabel $desa dan $kepala_desa tersedia
-    $desa = $desa ?? 'Kleteran';
-    $kepala_desa = $kepala_desa ?? 'Muhammad Waris Zainal, S.Pd.';
+    if ($tanggal) {
+        $date = strtotime($tanggal);
+        return date('d', $date) . ' ' . $bulanIndo[(int)date('m', $date)] . ' ' . date('Y', $date);
+    }
+
+    return date('d') . ' ' . $bulanIndo[(int)date('m')] . ' ' . date('Y');
+}
+
+// Fungsi helper untuk menghitung umur
+function hitungUmur($tanggal_lahir) {
+    if (!$tanggal_lahir) return '...';
+
+    $birthDate = new DateTime($tanggal_lahir);
+    $today = new DateTime();
+    $age = $today->diff($birthDate);
+
+    return $age->y . ' Tahun';
+}
+
+// Fungsi helper untuk generate letter number
+function generateLetterNumber($sequential, $year, $month) {
+    $romanMonths = [
+        1 => 'I', 'II', 'III', 'IV', 'V', 'VI',
+        'VII', 'VIII', 'IX', 'X', 'XI', 'XII'
+    ];
+
+    return sprintf('%s/%s/%s/%s', '510', $sequential, $romanMonths[$month], $year);
+}
+
+// Fungsi helper untuk render kop surat
+function renderKopSurat($kabupaten = 'Magelang', $kecamatan = 'Grabag', $desa = 'Kleteran', $alamat_desa = 'Jl. Telaga Bleder Km.1 Grabag Magelang') {
     ?>
+    <!-- Kop Surat -->
+    <div style="width: 100%; border-bottom: 4px double #000; padding-bottom: 10px; margin-bottom: 20px;">
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 120px; text-align: center;">
+                    <img src="/templates/logo.png" width="120" height="auto" alt="Logo">
+                </td>
+                <td style="text-align: center;">
+                    <h1 style="margin: 0; font-size: 10pt; font-weight: bold; text-transform: uppercase;">PEMERINTAH KABUPATEN <?= strtoupper($kabupaten) ?></h1>
+                    <h2 style="margin: 0; font-size: 12pt; font-weight: bold; text-transform: uppercase;">KECAMATAN <?= strtoupper($kecamatan) ?></h2>
+                    <h3 style="margin: 0; font-size: 14pt; font-weight: bold; text-transform: uppercase;">DESA <?= strtoupper($desa) ?></h3>
+                    <p style="margin: 0; font-size: 9pt; font-style: italic;"><?= $alamat_desa ?></p>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <?php
+}
 
+// Fungsi helper untuk render tanda tangan
+function renderTandaTangan($desa = 'Kleteran', $kepala_desa = 'Muhammad Waris Zainal, S.Pd.') {
+    $tanggal_sekarang = formatTanggalIndonesia();
+    ?>
+    <!-- Tanda Tangan -->
     <br><br>
 
     <table style="width: 100%; border: none;">
         <tr>
             <td style="width: 50%;"></td>
-
             <td style="width: 50%; text-align: center; vertical-align: top;">
-
                 <div style="margin-bottom: 5px;">
                     <?= strtoupper($desa) ?>, <?= $tanggal_sekarang ?>
                 </div>
@@ -154,10 +90,112 @@
                 <div style="font-weight: bold; text-decoration: underline; margin-top: 10px;">
                     <?= strtoupper($kepala_desa) ?>
                 </div>
-
             </td>
         </tr>
     </table>
+    <?php
+}
 
-</body>
-</html>
+// Fungsi helper untuk render identitas orang
+function renderIdentitasOrang($data) {
+    ?>
+    <table style="margin-left: 20px; width: 95%;">
+        <tr>
+            <td width="180">Nama</td>
+            <td>: <strong><?= strtoupper($data['nama'] ?? '') ?></strong></td>
+        </tr>
+        <tr>
+            <td>NIK</td>
+            <td>: <?= $data['nik'] ?? '' ?></td>
+        </tr>
+        <tr>
+            <td>Jenis Kelamin</td>
+            <td>: <?= strtoupper($data['jenis_kelamin'] ?? '') ?></td>
+        </tr>
+        <tr>
+            <td>Tempat, Tanggal Lahir</td>
+            <td>: <?= strtoupper($data['tempat_lahir'] ?? '') ?>, <?= $data['tanggal_lahir'] ?? '' ?></td>
+        </tr>
+        <tr>
+            <td>Agama</td>
+            <td>: <?= strtoupper($data['agama'] ?? '') ?></td>
+        </tr>
+        <tr>
+            <td>Pekerjaan</td>
+            <td>: <?= strtoupper($data['pekerjaan'] ?? 'WIRASWASTA') ?></td>
+        </tr>
+        <tr>
+            <td>Alamat</td>
+            <td>: <?= strtoupper($data['alamat'] ?? '') ?></td>
+        </tr>
+    </table>
+    <?php
+}
+
+// CSS umum untuk semua template
+function renderCommonCSS() {
+    ?>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            font-size: 10pt;
+            line-height: 1.3;
+            margin: 0;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td {
+            vertical-align: top;
+        }
+
+        .kop-container {
+            width: 100%;
+            border-bottom: 4px double #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .kop-logo {
+            width: 120px;
+            text-align: center;
+        }
+
+        .kop-text {
+            text-align: center;
+        }
+
+        .kop-text h1 {
+            margin: 0;
+            font-size: 10pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .kop-text h2 {
+            margin: 0;
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .kop-text h3 {
+            margin: 0;
+            font-size: 14pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .kop-text p {
+            margin: 0;
+            font-size: 9pt;
+            font-style: italic;
+        }
+    </style>
+    <?php
+}
+?>

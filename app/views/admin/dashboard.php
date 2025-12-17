@@ -89,7 +89,7 @@ $extra_js = [];
                 <div class="welcome-box p-6 text-white">
                     <div class="flex justify-between items-start relative z-10">
                                 <div>
-                                    <h1 class="text-2xl font-bold mb-2">Selamat Datang, Admin Panglipuran!</h1>
+                                    <h1 class="text-2xl font-bold mb-2">Selamat Datang, Admin</h1>
                                     <p class="text-lg opacity-95 mb-1">Senin, 15 Desember 2025</p>
                                 </div>
 

@@ -12,11 +12,18 @@ class TelegramBot {
     private $debugMode;
 
     public function __construct() {
-        require_once 'config/telegram.php';
+        // Check if config file exists
+        $configFile = 'config/telegram.php';
+        if (!file_exists($configFile)) {
+            $this->log('File config telegram.php tidak ditemukan. Silakan copy dari telegram.php.example');
+            throw new Exception('Konfigurasi Telegram belum diatur');
+        }
 
-        $this->botToken = TELEGRAM_BOT_TOKEN;
-        $this->apiUrl = TELEGRAM_BOT_API_URL;
-        $this->debugMode = TELEGRAM_DEBUG_MODE;
+        require_once $configFile;
+
+        $this->botToken = defined('TELEGRAM_BOT_TOKEN') ? TELEGRAM_BOT_TOKEN : '';
+        $this->apiUrl = defined('TELEGRAM_BOT_API_URL') ? TELEGRAM_BOT_API_URL : '';
+        $this->debugMode = defined('TELEGRAM_DEBUG_MODE') ? TELEGRAM_DEBUG_MODE : false;
 
         // Pastikan bot token sudah diatur
         if (empty($this->botToken) || $this->botToken === 'YOUR_BOT_TOKEN_HERE') {
@@ -63,13 +70,67 @@ class TelegramBot {
     }
 
     /**
-     * Kirim notifikasi persetujuan surat
+     * Kirim dokumen/file ke chat ID tertentu
+     *
+     * @param string $chatId Chat ID penerima
+     * @param string $filePath Path lengkap ke file yang akan dikirim
+     * @param string $caption Caption untuk file (opsional)
+     * @param array $options Opsi tambahan
+     * @return array Response dari Telegram API
+     */
+    public function sendDocument($chatId, $filePath, $caption = '', $options = []) {
+        if (!TELEGRAM_NOTIFICATIONS_ENABLED) {
+            $this->log('Notifikasi Telegram dinonaktifkan');
+            return ['ok' => false, 'message' => 'Notifikasi dinonaktifkan'];
+        }
+
+        if (!file_exists($filePath)) {
+            $this->log("File tidak ditemukan: $filePath");
+            return ['ok' => false, 'message' => 'File tidak ditemukan'];
+        }
+
+        if (!is_readable($filePath)) {
+            $this->log("File tidak dapat dibaca: $filePath");
+            return ['ok' => false, 'message' => 'File tidak dapat dibaca'];
+        }
+
+        $fileName = basename($filePath);
+        $fileSize = filesize($filePath);
+
+        $this->log("Mengirim dokumen ke chat ID: $chatId");
+        $this->log("File: $fileName ($fileSize bytes)");
+
+        // Siapkan data untuk CURL
+        $postData = [
+            'chat_id' => $chatId,
+            'document' => new CURLFile($filePath, $this->getMimeType($filePath), $fileName),
+            'caption' => $caption,
+            'parse_mode' => 'Markdown'
+        ];
+
+        // Gabungkan dengan opsi tambahan
+        $postData = array_merge($postData, $options);
+
+        $result = $this->makeMultipartRequest('sendDocument', $postData);
+
+        if ($result['ok']) {
+            $this->log('Dokumen berhasil dikirim');
+        } else {
+            $this->log('Gagal mengirim dokumen: ' . ($result['description'] ?? 'Unknown error'));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Kirim notifikasi persetujuan surat dengan file PDF
      *
      * @param array $requestData Data permohonan surat
      * @param string $adminName Nama admin yang menyetujui
+     * @param string $pdfFilePath Path lengkap ke file PDF (opsional)
      * @return array Response dari Telegram API
      */
-    public function sendApprovalNotification($requestData, $adminName = 'Admin') {
+    public function sendApprovalNotification($requestData, $adminName = 'Admin', $pdfFilePath = null) {
         $chatId = $this->getUserChatId($requestData['user_id']);
 
         if (!$chatId) {
@@ -79,7 +140,22 @@ class TelegramBot {
 
         $message = $this->formatApprovalMessage($requestData, $adminName);
 
-        return $this->sendMessage($chatId, $message);
+        // Kirim pesan notifikasi terlebih dahulu
+        $messageResult = $this->sendMessage($chatId, $message);
+
+        // Jika ada file PDF, kirim juga file PDF
+        if ($pdfFilePath && file_exists($pdfFilePath)) {
+            $this->log("Mengirim file PDF: $pdfFilePath");
+            $documentResult = $this->sendDocument($chatId, $pdfFilePath, "📄 Surat {$requestData['letter_type_name']} - ID: {$requestData['id']}");
+
+            return [
+                'ok' => $messageResult['ok'] && $documentResult['ok'],
+                'message_result' => $messageResult,
+                'document_result' => $documentResult
+            ];
+        }
+
+        return $messageResult;
     }
 
     /**
@@ -231,6 +307,153 @@ class TelegramBot {
         }
 
         return $response;
+    }
+
+    /**
+     * Kirim multipart request ke Telegram API
+     *
+     * @param string $method Method API
+     * @param array $postData Data POST multipart
+     * @return array Response dari API
+     */
+    private function makeMultipartRequest($method, $postData) {
+        $url = $this->apiUrl . $method;
+
+        // Jika CURL tersedia, gunakan CURL
+        if (function_exists('curl_init')) {
+            return $this->makeCurlRequest($url, $postData);
+        }
+
+        // Fallback menggunakan file_get_contents (kurang reliable untuk file upload)
+        $this->log('CURL not available, using file_get_contents fallback');
+
+        $boundary = '----TelegramBotBoundary' . uniqid();
+        $body = $this->buildMultipartBodyFromArray($postData, $boundary);
+
+        $options = [
+            'http' => [
+                'header' => "Content-Type: multipart/form-data; boundary=$boundary\r\n",
+                'method' => 'POST',
+                'content' => $body,
+                'timeout' => 60
+            ]
+        ];
+
+        $context = stream_context_create($options);
+        $result = file_get_contents($url, false, $context);
+
+        if ($result === false) {
+            $error = error_get_last();
+            $this->log('Multipart HTTP request failed: ' . ($error['message'] ?? 'Unknown error'));
+            return ['ok' => false, 'error' => $error['message'] ?? 'HTTP request failed'];
+        }
+
+        $response = json_decode($result, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->log('JSON decode error: ' . json_last_error_msg());
+            return ['ok' => false, 'error' => 'JSON decode error'];
+        }
+
+        return $response;
+    }
+
+    /**
+     * Kirim request menggunakan CURL (lebih reliable)
+     *
+     * @param string $url URL API
+     * @param array $postData Data POST
+     * @return array Response dari API
+     */
+    private function makeCurlRequest($url, $postData) {
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+        // Set header untuk multipart/form-data
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: multipart/form-data'
+        ]);
+
+        $result = curl_exec($ch);
+        $error = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($result === false) {
+            $this->log('CURL request failed: ' . $error);
+            return ['ok' => false, 'error' => $error];
+        }
+
+        $this->log("HTTP Response Code: $httpCode");
+
+        $response = json_decode($result, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->log('JSON decode error: ' . json_last_error_msg());
+            $this->log('Raw response: ' . substr($result, 0, 200));
+            return ['ok' => false, 'error' => 'JSON decode error'];
+        }
+
+        return $response;
+    }
+
+    /**
+     * Build multipart form data body from array (fallback method)
+     *
+     * @param array $data Data form
+     * @param string $boundary Boundary string
+     * @return string Multipart body
+     */
+    private function buildMultipartBodyFromArray($data, $boundary) {
+        $body = '';
+
+        foreach ($data as $name => $value) {
+            $body .= "--$boundary\r\n";
+
+            if ($value instanceof CURLFile) {
+                // File upload
+                $body .= "Content-Disposition: form-data; name=\"$name\"; filename=\"{$value->getPostFilename()}\"\r\n";
+                $body .= "Content-Type: {$value->getMimeType()}\r\n\r\n";
+                $body .= file_get_contents($value->getFilename()) . "\r\n";
+            } else {
+                // Regular field
+                $body .= "Content-Disposition: form-data; name=\"$name\"\r\n\r\n";
+                $body .= $value . "\r\n";
+            }
+        }
+
+        $body .= "--$boundary--\r\n";
+        return $body;
+    }
+
+    /**
+     * Get MIME type for file
+     *
+     * @param string $filePath Path to file
+     * @return string MIME type
+     */
+    private function getMimeType($filePath) {
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        $mimeTypes = [
+            'pdf' => 'application/pdf',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'txt' => 'text/plain'
+        ];
+
+        return $mimeTypes[$extension] ?? 'application/octet-stream';
     }
 
     /**
