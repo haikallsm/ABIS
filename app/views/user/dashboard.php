@@ -158,93 +158,6 @@ $extra_js = [];
 
                 </div>
 
-                <!-- TELEGRAM CHAT ID SETUP -->
-                <div class="cream-card p-6 mb-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8-9 8s9 3.582 9 8z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-dark">Notifikasi Telegram</h3>
-                                <p class="text-sm text-gray-600">Dapatkan notifikasi status permohonan via Telegram</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <?php if (!empty($current_user['telegram_chat_id'])): ?>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
-                                        <circle cx="4" cy="4" r="3"/>
-                                    </svg>
-                                    Terhubung
-                                </span>
-                            <?php else: ?>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
-                                        <circle cx="4" cy="4" r="3"/>
-                                    </svg>
-                                    Belum Terhubung
-                                </span>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <?php if (empty($current_user['telegram_chat_id'])): ?>
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                            <div class="flex items-start">
-                                <div class="shrink-0">
-                                    <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <h4 class="text-sm font-medium text-blue-800">Hubungkan Akun Telegram</h4>
-                                    <div class="mt-2 text-sm text-blue-700">
-                                        <p>Dapatkan notifikasi real-time ketika status permohonan surat Anda berubah. Ikuti langkah berikut:</p>
-                                        <ol class="mt-2 list-decimal list-inside space-y-1">
-                                            <li>Buka Telegram dan cari bot <code class="bg-blue-100 px-1 rounded">@SuratIn_Bot</code></li>
-                                            <li>Kirim pesan <code class="bg-blue-100 px-1 rounded">/start</code> ke bot</li>
-                                            <li>Bot akan memberikan Chat ID Anda</li>
-                                            <li>Masukkan Chat ID di bawah ini</li>
-                                        </ol>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <form id="telegramForm" method="POST" action="<?php echo BASE_URL; ?>/telegram/update-chat-id" class="space-y-4">
-                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-
-                        <div>
-                            <label for="telegram_chat_id" class="block text-sm font-medium text-gray-700 mb-2">
-                                Chat ID Telegram <?php if (empty($current_user['telegram_chat_id'])): ?><span class="text-red-500">*</span><?php endif; ?>
-                            </label>
-                            <div class="flex gap-2">
-                                <input type="text"
-                                       id="telegram_chat_id"
-                                       name="telegram_chat_id"
-                                       value="<?php echo htmlspecialchars($current_user['telegram_chat_id'] ?? ''); ?>"
-                                       placeholder="Contoh: 123456789"
-                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                                       <?php if (!empty($current_user['telegram_chat_id'])): ?>readonly<?php endif; ?>>
-                                <button type="submit"
-                                        id="telegramBtn"
-                                        class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                    <?php echo empty($current_user['telegram_chat_id']) ? 'Hubungkan' : 'Update'; ?>
-                                </button>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">
-                                Chat ID bersifat pribadi dan hanya digunakan untuk mengirim notifikasi ke akun Telegram Anda.
-                            </p>
-                        </div>
-                    </form>
-                </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 cream-card p-6">
@@ -426,24 +339,6 @@ $extra_js = [];
 </div>
 
 <script>
-// Handle Telegram Chat ID form submission
-document.getElementById('telegramForm').addEventListener('submit', function(e) {
-    const btn = document.getElementById('telegramBtn');
-    const originalText = btn.innerHTML;
-
-    // Show loading state
-    btn.disabled = true;
-    btn.innerHTML = `
-        <svg class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Menyimpan...
-    `;
-
-    // Form will submit normally, loading state will be handled by page reload
-});
-
 // Auto-hide success/error messages after 5 seconds
 setTimeout(function() {
     const alerts = document.querySelectorAll('.bg-green-100, .bg-red-100, .bg-blue-100');

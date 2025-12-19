@@ -151,7 +151,8 @@ class AuthController {
         $password = $_POST['password'] ?? '';
         $confirmPassword = $_POST['password_confirmation'] ?? $_POST['confirm_password'] ?? '';
         $fullName = sanitize($_POST['nama'] ?? $_POST['full_name'] ?? '');
-        $phone = sanitize($_POST['phone'] ?? '');
+        $telegramChatId = sanitize($_POST['telegram_chat_id'] ?? '');
+        $phone = sanitize($_POST['phone'] ?? ''); // Phone can be empty during registration
         $address = sanitize($_POST['address'] ?? '');
 
         // Validate input
@@ -190,6 +191,12 @@ class AuthController {
             $errors['nama'] = 'Nama lengkap wajib diisi';
         }
 
+        if (empty($telegramChatId)) {
+            $errors['telegram_chat_id'] = 'ID Telegram wajib diisi';
+        } elseif (!is_numeric($telegramChatId)) {
+            $errors['telegram_chat_id'] = 'ID Telegram harus berupa angka';
+        }
+
         if (!empty($errors)) {
             if ($isAjax) {
                 header('Content-Type: application/json');
@@ -212,9 +219,10 @@ class AuthController {
             'email' => $email,
             'password' => $password,
             'full_name' => $fullName,
-            'phone' => $phone,
+            'phone' => $phone, // Can be empty during registration
             'address' => $address,
             'nik' => $nik,
+            'telegram_chat_id' => $telegramChatId,
             'role' => ROLE_USER
         ];
 
@@ -254,6 +262,7 @@ class AuthController {
                         'nik' => $nik,
                         'email' => $email,
                         'nama' => $fullName,
+                        'telegram_chat_id' => $telegramChatId,
                         'phone' => $phone,
                         'address' => $address
                     ]

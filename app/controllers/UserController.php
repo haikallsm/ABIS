@@ -503,6 +503,7 @@ class UserController {
 
     /**
      * Update user's Telegram Chat ID
+     * TODO: This method is currently not used in dashboard, but may be needed for profile page
      */
     public function updateTelegramChatId() {
         requireAuth('user');

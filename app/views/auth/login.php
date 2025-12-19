@@ -176,11 +176,11 @@
                         
                         <div class="form-group">
                             <label class="form-label">
-                                <i class="fas fa-phone"></i>
-                                Nomor HP
+                                <i class="fab fa-telegram"></i>
+                                ID Telegram
                             </label>
-                            <input type="tel" class="form-input" id="reg-phone" name="phone"
-                                   placeholder="08xx xxxx xxxx" required>
+                            <input type="text" class="form-input" id="reg-telegram-chat-id" name="telegram_chat_id"
+                                   placeholder="Masukkan ID Telegram Anda" required>
                         </div>
                         
                         <div class="form-group">

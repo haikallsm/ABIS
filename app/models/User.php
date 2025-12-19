@@ -68,7 +68,7 @@ class User {
      */
     public function findByEmail($email) {
         return fetchOne(
-            "SELECT id, username, email, password, full_name, role, phone, address, created_at, updated_at, is_active
+            "SELECT id, username, email, password, full_name, role, phone, address, telegram_chat_id, created_at, updated_at, is_active
              FROM {$this->table}
              WHERE email = ? AND is_active = 1",
             [$email]
@@ -211,7 +211,7 @@ class User {
         }
 
         $users = fetchAll(
-            "SELECT id, username, email, full_name, role, phone, address, created_at
+            "SELECT id, username, email, full_name, role, phone, address, telegram_chat_id, created_at
              FROM {$this->table}
              WHERE {$whereClause}
              ORDER BY created_at DESC
@@ -248,7 +248,7 @@ class User {
         }
 
         $users = fetchAll(
-            "SELECT id, username, email, full_name, role, phone, address, created_at
+            "SELECT id, username, email, full_name, role, phone, address, telegram_chat_id, created_at
              FROM {$this->table}
              WHERE {$whereClause}
              ORDER BY created_at DESC",
@@ -270,7 +270,7 @@ class User {
      */
     public function getByRole($role) {
         return fetchAll(
-            "SELECT id, username, email, full_name, phone, address, created_at
+            "SELECT id, username, email, full_name, phone, address, telegram_chat_id, created_at
              FROM {$this->table}
              WHERE role = ? AND is_active = 1
              ORDER BY full_name ASC",

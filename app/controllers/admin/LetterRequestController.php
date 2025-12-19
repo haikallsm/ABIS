@@ -261,15 +261,33 @@ class LetterRequestController
     {
         try {
             $telegramBot = new TelegramBot();
+
+            // Get fresh request data to ensure we have the latest generated file
             $request = $this->letterRequestModel->findById($requestId);
 
             if ($request && TELEGRAM_NOTIFICATIONS_ENABLED) {
                 $user = $this->userModel->findById($request['user_id']);
                 if ($user && !empty($user['telegram_chat_id'])) {
+                    // Get admin name from current session
+                    $adminData = getCurrentUser();
+                    $adminName = $adminData ? $adminData['full_name'] : 'Admin';
+
+                    // Get PDF file path using LetterService
+                    $pdfFilePath = $this->letterService->getLetterFilePath($requestId);
+
+                    // Only send PDF if file exists and path is valid
+                    if ($pdfFilePath && file_exists($pdfFilePath)) {
+                        error_log('PDF file found and ready to send: ' . $pdfFilePath);
+                    } else {
+                        error_log('PDF file not found or invalid path: ' . ($pdfFilePath ?? 'null'));
+                        $pdfFilePath = null;
+                    }
+
+                    // Send notification with PDF attachment if available
                     $telegramBot->sendApprovalNotification(
-                        $user['telegram_chat_id'],
-                        $request['letter_number'] ?? 'N/A',
-                        $request['letter_type_name']
+                        $request,  // Pass full request data array
+                        $adminName, // Admin name
+                        $pdfFilePath // PDF file path (null if not available)
                     );
                 }
             }
