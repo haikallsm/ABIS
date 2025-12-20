@@ -12,7 +12,7 @@ require_once 'app/models/LetterType.php';
 
 class AdminController {
     private $userModel;
-    private $letterRequestModel;
+    private $letterRequdestModel;
     private $letterTypeModel;
 
     public function __construct() {
@@ -88,39 +88,72 @@ class AdminController {
              LIMIT 5"
         );
 
-        // Get recent activities (mock data for demonstration)
-        $recent_activities = [
-            [
-                'title' => 'Surat Keterangan Domisili disetujui',
-                'time' => date('d M Y, H:i', strtotime('-2 hours')),
-                'icon' => 'fa-check-circle',
-                'color' => 'green'
-            ],
-            [
-                'title' => 'Pengguna baru terdaftar',
-                'time' => date('d M Y, H:i', strtotime('-4 hours')),
-                'icon' => 'fa-user-plus',
-                'color' => 'blue'
-            ],
-            [
-                'title' => 'Permintaan Surat Keterangan Tidak Mampu',
-                'time' => date('d M Y, H:i', strtotime('-6 hours')),
-                'icon' => 'fa-clock',
-                'color' => 'yellow'
-            ],
-            [
-                'title' => 'Surat Pengantar Nikah disetujui',
-                'time' => date('d M Y, H:i', strtotime('-1 day')),
-                'icon' => 'fa-check-circle',
-                'color' => 'green'
-            ],
-            [
-                'title' => '3 permintaan surat baru hari ini',
-                'time' => date('d M Y, H:i', strtotime('-1 day')),
-                'icon' => 'fa-file-alt',
-                'color' => 'purple'
-            ]
+        // Generate recent activities from actual database data
+        $recent_activities = [];
+        $activities_data = fetchAll(
+            "SELECT lr.status, lr.created_at, lr.approved_at, lr.updated_at, lt.name as letter_type_name, u.full_name as user_name
+             FROM letter_requests lr
+             LEFT JOIN letter_types lt ON lr.letter_type_id = lt.id
+             LEFT JOIN users u ON lr.user_id = u.id
+             ORDER BY lr.updated_at DESC
+             LIMIT 5"
+        );
+
+        // Helper function to convert month name to Indonesian
+        $bulanIndo = [
+            'Jan' => 'Jan', 'Feb' => 'Feb', 'Mar' => 'Mar', 'Apr' => 'Apr',
+            'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags',
+            'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nov', 'Dec' => 'Des'
         ];
+
+        foreach ($activities_data as $activity) {
+            // Format time with Indonesian month
+            $timestamp = $activity['approved_at'] ?: $activity['updated_at'] ?: $activity['created_at'];
+            $formatted_time = date('d M Y, H:i', strtotime($timestamp));
+            $formatted_time = str_replace(array_keys($bulanIndo), array_values($bulanIndo), $formatted_time);
+
+            if ($activity['status'] === 'approved') {
+                $recent_activities[] = [
+                    'title' => 'Surat ' . $activity['letter_type_name'] . ' disetujui',
+                    'time' => $formatted_time,
+                    'icon' => 'check',
+                    'color' => 'primary'
+                ];
+            } elseif ($activity['status'] === 'pending') {
+                $recent_activities[] = [
+                    'title' => 'Permintaan surat ' . $activity['letter_type_name'] . ' masuk',
+                    'time' => date('d M Y, H:i', strtotime($activity['created_at'])),
+                    'icon' => 'clock',
+                    'color' => 'secondary'
+                ];
+            } elseif ($activity['status'] === 'rejected') {
+                $recent_activities[] = [
+                    'title' => 'Surat ' . $activity['letter_type_name'] . ' ditolak',
+                    'time' => date('d M Y, H:i', strtotime($activity['updated_at'])),
+                    'icon' => 'x',
+                    'color' => 'accent'
+                ];
+            } elseif ($activity['status'] === 'completed') {
+                $recent_activities[] = [
+                    'title' => 'Surat ' . $activity['letter_type_name'] . ' selesai diproses',
+                    'time' => date('d M Y, H:i', strtotime($activity['updated_at'])),
+                    'icon' => 'check-circle',
+                    'color' => 'primary'
+                ];
+            }
+        }
+
+        // Fallback if no activities found
+        if (empty($recent_activities)) {
+            $recent_activities = [
+                [
+                    'title' => 'Dashboard siap digunakan',
+                    'time' => date('d M Y, H:i'),
+                    'icon' => 'check',
+                    'color' => 'primary'
+                ]
+            ];
+        }
 
         // Get pending requests for quick actions
         $pending_requests = $this->letterRequestModel->getByStatus(STATUS_PENDING, 5);

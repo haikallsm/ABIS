@@ -8,16 +8,19 @@
 require_once MODELS_DIR . '/User.php';
 require_once MODELS_DIR . '/LetterRequest.php';
 require_once MODELS_DIR . '/LetterType.php';
+require_once SERVICES_DIR . '/LetterService.php';
 
 class UserController {
     private $userModel;
     private $requestModel;
     private $letterTypeModel;
+    private $letterService;
 
     public function __construct() {
         $this->userModel = new User();
         $this->requestModel = new LetterRequest();
         $this->letterTypeModel = new LetterType();
+        $this->letterService = new LetterService();
     }
 
     /**
@@ -281,9 +284,9 @@ class UserController {
             exit('File tidak tersedia');
         }
 
-        $filePath = UPLOADS_DIR . '/' . $request['generated_file'];
+        $filePath = $this->letterService->getLetterFilePath($requestId);
 
-        if (!file_exists($filePath)) {
+        if (!$filePath || !file_exists($filePath)) {
             http_response_code(404);
             exit('File tidak ditemukan');
         }
@@ -333,9 +336,9 @@ class UserController {
             exit('File tidak tersedia');
         }
 
-        $filePath = UPLOADS_DIR . '/' . $request['generated_file'];
+        $filePath = $this->letterService->getLetterFilePath($requestId);
 
-        if (!file_exists($filePath)) {
+        if (!$filePath || !file_exists($filePath)) {
             http_response_code(404);
             exit('File tidak ditemukan');
         }

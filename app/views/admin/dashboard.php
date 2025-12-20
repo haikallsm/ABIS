@@ -90,7 +90,7 @@ $extra_js = [];
                     <div class="flex justify-between items-start relative z-10">
                                 <div>
                                     <h1 class="text-2xl font-bold mb-2">Selamat Datang, Admin</h1>
-                                    <p class="text-lg opacity-95 mb-1">Senin, 15 Desember 2025</p>
+                                    <p id="live-clock" class="text-lg opacity-95 mb-1"><?php echo date('l, d F Y H:i:s', strtotime('now')); ?></p>
                                 </div>
 
                         <div class="text-right">
@@ -269,7 +269,7 @@ $extra_js = [];
                                                       ($request['status'] === 'rejected' ? 'Ditolak' : 'Selesai')); ?>
                                             </span>
                                         </td>
-                                        <td class="px-5 py-4 border-b cream-border text-sm text-gray-500"><?php echo date('27 Jul 2025', strtotime($request['created_at'])); ?></td>
+                                        <td class="px-5 py-4 border-b cream-border text-sm text-gray-500"><?php echo date('d M Y', strtotime($request['created_at'])); ?></td>
                                         <td class="px-5 py-4 border-b cream-border text-sm">
                                             <div class="flex items-center space-x-2">
                                                 <button title="Lihat" class="action-button text-primary hover:text-dark transition p-2 rounded-lg hover:bg-primary/10">
@@ -300,46 +300,44 @@ $extra_js = [];
                                 <span class="text-xs text-primary font-semibold bg-primary/10 px-3 py-1 rounded-full">3 aktivitas</span>
                             </div>
                             <ul class="space-y-5">
+                                <?php foreach ($recent_activities as $activity): ?>
                                 <li class="flex items-start group">
-                                    <div class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mr-3 mt-1">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
+                                    <div class="w-9 h-9 rounded-full bg-<?php echo $activity['color']; ?>/10 text-<?php echo $activity['color']; ?> flex items-center justify-center shrink-0 mr-3 mt-1">
+                                        <?php if ($activity['icon'] === 'check'): ?>
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        <?php elseif ($activity['icon'] === 'clock'): ?>
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        <?php elseif ($activity['icon'] === 'x'): ?>
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        <?php elseif ($activity['icon'] === 'check-circle'): ?>
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        <?php else: ?>
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        <?php endif; ?>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-dark">Surat Pengantar SKCK disetujui</p>
-                                        <p class="text-xs text-gray-500 mt-1">27 Jul 2025, 10:30 WIB</p>
+                                        <p class="text-sm font-medium text-dark"><?php echo htmlspecialchars($activity['title']); ?></p>
+                                        <p class="text-xs text-gray-500 mt-1"><?php echo htmlspecialchars($activity['time']); ?> WIB</p>
                                     </div>
                                 </li>
-                                <li class="flex items-start group">
-                                    <div class="w-9 h-9 rounded-full bg-secondary/10 text-secondary flex items-center justify-center shrink-0 mr-3 mt-1">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M12 4.354a4 4 0 100 5.292M12 11.354C9.647 11.354 7.6 13.301 7.6 15.654v1.746c0 1.258.972 2.308 2.308 2.308h4.184c1.336 0 2.308-1.05 2.308-2.308v-1.746c0-2.353-2.047-4.3-4.39-4.3z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-dark">Pengguna baru terdaftar</p>
-                                        <p class="text-xs text-gray-500 mt-1">26 Jul 2025, 15:45 WIB</p>
-                                    </div>
-                                </li>
-                                <li class="flex items-start group">
-                                    <div class="w-9 h-9 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0 mr-3 mt-1">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-dark">Permintaan Surat Keterangan Domisili</p>
-                                        <p class="text-xs text-gray-500 mt-1">26 Jul 2025, 09:15 WIB</p>
-                                    </div>
-                                </li>
+                                <?php endforeach; ?>
                             </ul>
                         </div>
 
                         <div class="cream-card p-6">
                             <div class="flex justify-between items-center mb-6 border-b pb-4 cream-border">
                                 <h3 class="text-xl font-bold text-dark">Statistik Bulan Ini</h3>
-                                <span class="text-xs text-primary font-semibold bg-primary/10 px-3 py-1 rounded-full">Juli 2025</span>
+                                <span class="text-xs text-primary font-semibold bg-primary/10 px-3 py-1 rounded-full"><?php echo date('F Y'); ?></span>
                             </div>
                             <div class="space-y-5 text-sm">
                                 <div class="flex justify-between items-center p-3 bg-primary/5 rounded-lg">

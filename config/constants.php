@@ -67,6 +67,7 @@ define('UPLOADS_DIR', PUBLIC_DIR . '/uploads');
 define('VIEWS_DIR', APP_DIR . '/views');
 define('MODELS_DIR', APP_DIR . '/models');
 define('CONTROLLERS_DIR', APP_DIR . '/controllers');
+define('SERVICES_DIR', APP_DIR . '/services');
 
 // File Upload Settings
 define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB

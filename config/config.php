@@ -9,6 +9,9 @@
 // Load constants
 require_once __DIR__ . '/constants.php';
 
+// Load letter constants
+require_once __DIR__ . '/letter_constants.php';
+
 // Load database configuration
 require_once __DIR__ . '/database.php';
 

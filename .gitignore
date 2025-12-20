@@ -54,6 +54,9 @@ temp/
 # Uploads (in development, uncomment for production)
 # public/uploads/
 
+# Generated PDFs
+generated_pdfs/
+
 # Cache
 .cache/
 npm-debug.log*
