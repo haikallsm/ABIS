@@ -864,8 +864,10 @@ class AdminController {
             header('Pragma: public');
             header('Content-Transfer-Encoding: binary');
 
-            // Add UTF-8 BOM to ensure proper encoding
-            echo "\xEF\xBB\xBF";
+            // CRITICAL: Clean any remaining output buffer to prevent corruption
+            if (ob_get_length()) {
+                ob_clean();
+            }
 
             // Create writer and save directly to output without buffering
             $writer = PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
