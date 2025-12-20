@@ -41,8 +41,11 @@ function startButtonVisibilityMonitor() {
         const statusSpans = document.querySelectorAll('td.text-center span.px-3.py-1\\.5.rounded-full');
         statusSpans.forEach((span, index) => {
             const key = `status-span-${index}`;
-            if (!originalTexts.has(key)) {
-                originalTexts.set(key, span.textContent.trim());
+            const text = span.textContent.trim();
+            if (!originalTexts.has(key) && text) {
+                originalTexts.set(key, text);
+                // Store original text as data attribute for CSS fallback
+                span.setAttribute('data-original-text', text);
             }
         });
     }
@@ -96,6 +99,7 @@ function startButtonVisibilityMonitor() {
                 fixedCount++;
                 // Restore original status text
                 span.textContent = originalText;
+                span.setAttribute('data-original-text', originalText);
                 console.log(`Restored text for status span ${index}: ${originalText}`);
             }
         });
@@ -176,25 +180,25 @@ function restoreStatusText(span) {
     const currentText = span.textContent.trim();
 
     if (currentText === '' || currentText === 'undefined' || currentText === null) {
-        // Try to determine status from row context
-        const row = span.closest('tr');
-        if (row) {
-            // Find the approve button in this row to determine status
-            const approveBtn = row.querySelector('button[id^="approve-btn-"]');
-            if (approveBtn) {
-                // If approve button exists, status is pending
-                span.textContent = 'Menunggu';
-                span.className = 'px-3 py-1.5 rounded-full text-xs font-semibold border bg-yellow-100 text-yellow-700 border-yellow-200';
-            } else {
-                // Check for final status spans
-                const finalSpan = row.querySelector('span.bg-green-600, span.bg-red-600');
-                if (finalSpan) {
-                    span.textContent = finalSpan.textContent;
-                    span.className = finalSpan.className;
-                }
-            }
+        // Determine status from existing CSS classes (preserve current styling)
+        let restoredText = '';
+        if (span.classList.contains('bg-green-100') || span.classList.contains('bg-green-600')) {
+            restoredText = 'Disetujui';
+        } else if (span.classList.contains('bg-red-100') || span.classList.contains('bg-red-600')) {
+            restoredText = 'Ditolak';
+        } else if (span.classList.contains('bg-yellow-100') || span.classList.contains('bg-yellow-600')) {
+            restoredText = 'Menunggu';
+        } else if (span.classList.contains('bg-blue-100') || span.classList.contains('bg-blue-600')) {
+            restoredText = 'Diproses';
+        } else {
+            // Default fallback if no status classes found
+            restoredText = 'Menunggu';
+            span.className = 'px-3 py-1.5 rounded-full text-xs font-semibold border bg-yellow-100 text-yellow-700 border-yellow-200';
         }
-        console.log(`Restored text for status span`);
+
+        span.textContent = restoredText;
+        span.setAttribute('data-original-text', restoredText);
+        console.log(`Restored text for status span: ${restoredText}`);
     }
 }
 
@@ -235,18 +239,28 @@ function resetButtonStyles() {
         span.style.setProperty('visibility', 'visible', 'important');
         span.style.setProperty('display', 'inline-block', 'important');
 
-        // Restore status text if missing
+        // Restore status text if missing, but preserve existing status
         const currentText = span.textContent.trim();
         if (currentText === '' || currentText === 'undefined' || currentText === null) {
-            // Try to determine status from row context
-            const row = span.closest('tr');
-            if (row) {
-                const approveBtn = row.querySelector('button[id^="approve-btn-"]');
-                if (approveBtn) {
-                    span.textContent = 'Menunggu';
-                    span.className = 'px-3 py-1.5 rounded-full text-xs font-semibold border bg-yellow-100 text-yellow-700 border-yellow-200';
-                }
+            // Determine status from existing CSS classes (don't guess from buttons)
+            let restoredText = '';
+            if (span.classList.contains('bg-green-100') || span.classList.contains('bg-green-600')) {
+                restoredText = 'Disetujui';
+            } else if (span.classList.contains('bg-red-100') || span.classList.contains('bg-red-600')) {
+                restoredText = 'Ditolak';
+            } else if (span.classList.contains('bg-yellow-100') || span.classList.contains('bg-yellow-600')) {
+                restoredText = 'Menunggu';
+            } else if (span.classList.contains('bg-blue-100') || span.classList.contains('bg-blue-600')) {
+                restoredText = 'Diproses';
+            } else {
+                // Default fallback if no status classes found
+                restoredText = 'Menunggu';
+                span.className = 'px-3 py-1.5 rounded-full text-xs font-semibold border bg-yellow-100 text-yellow-700 border-yellow-200';
             }
+
+            span.textContent = restoredText;
+            span.setAttribute('data-original-text', restoredText);
+            console.log('Restored missing status text:', restoredText);
         }
     });
 
@@ -331,12 +345,26 @@ function ensureActionButtonsVisibility() {
                 opacity: 1 !important;
                 visibility: visible !important;
                 display: inline-block !important;
+                /* Prevent text from being hidden or removed */
+                content: attr(data-original-text) !important;
             }
             /* Protect all text content in status column */
             td.text-center:has(span.px-3.py-1\.5.rounded-full),
             td.text-center span.px-3.py-1\.5.rounded-full {
                 opacity: 1 !important;
                 visibility: visible !important;
+            }
+            /* Extra protection for status spans */
+            td.text-center span.px-3.py-1\.5.rounded-full::before,
+            td.text-center span.px-3.py-1\.5.rounded-full::after {
+                content: none !important;
+            }
+            /* Prevent any script from clearing text content */
+            td.text-center span.px-3.py-1\.5.rounded-full:empty {
+                content: "Menunggu" !important;
+                background-color: rgb(254 240 138) !important;
+                color: rgb(67 56 202) !important;
+                border-color: rgb(252 211 77) !important;
             }
         `;
         document.head.appendChild(style);

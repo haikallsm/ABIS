@@ -316,22 +316,63 @@ class AdminController {
      * Export requests to Excel
      */
     public function exportExcel() {
-        requireAuth('admin');
+        try {
+            error_log("Excel Export: Starting export process");
 
-        // Get filter parameters
-        $dari_tanggal = $_GET['dari_tanggal'] ?? '';
-        $sampai_tanggal = $_GET['sampai_tanggal'] ?? '';
+            // IMPORTANT: Clean output buffer to prevent corruption
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
 
-        // Build filters
-        $filters = [];
-        if (!empty($dari_tanggal)) $filters['dari_tanggal'] = $dari_tanggal;
-        if (!empty($sampai_tanggal)) $filters['sampai_tanggal'] = $sampai_tanggal;
+            requireAuth('admin');
+            error_log("Excel Export: Authentication passed");
 
-        // Get all requests without pagination
-        $requests = $this->letterRequestModel->getAllForExport($filters);
+            // Get filter parameters
+            $dari_tanggal = $_GET['dari_tanggal'] ?? '';
+            $sampai_tanggal = $_GET['sampai_tanggal'] ?? '';
 
-        // Create Excel file
-        $this->createExcelFile($requests);
+            error_log("Excel Export: Parameters - dari_tanggal: $dari_tanggal, sampai_tanggal: $sampai_tanggal");
+
+            // Build filters
+            $filters = [];
+            if (!empty($dari_tanggal)) $filters['dari_tanggal'] = $dari_tanggal;
+            if (!empty($sampai_tanggal)) $filters['sampai_tanggal'] = $sampai_tanggal;
+
+            // Get all requests without pagination
+            $requests = $this->letterRequestModel->getAllForExport($filters);
+
+            error_log("Excel Export: Found " . count($requests) . " records to export");
+
+            if (empty($requests)) {
+                error_log("Excel Export: No data found, redirecting to export page");
+                header('Location: ' . BASE_URL . '/admin/export');
+                exit;
+            }
+
+            // Validate data before creating Excel
+            if (!is_array($requests) || count($requests) === 0) {
+                error_log("Excel Export: Invalid data format");
+                $_SESSION['error'] = 'Data tidak valid untuk export';
+                header('Location: ' . BASE_URL . '/admin/export');
+                exit;
+            }
+
+            // Create Excel file
+            $this->createExcelFile($requests);
+
+        } catch (Exception $e) {
+            error_log("Excel Export: Fatal error in exportExcel: " . $e->getMessage());
+            error_log("Excel Export: Stack trace: " . $e->getTraceAsString());
+
+            // Clean output and redirect with error
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+
+            $_SESSION['error'] = 'Terjadi kesalahan saat membuat file Excel. Silakan coba lagi.';
+            header('Location: ' . BASE_URL . '/admin/export');
+            exit;
+        }
     }
 
     /**
@@ -725,11 +766,27 @@ class AdminController {
      */
     private function createExcelFile($requests) {
         try {
+            // Clean any existing output buffers completely
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+
+            // Ensure no output buffers are active
+            if (ob_get_level() > 0) {
+                ob_clean();
+            }
+
             require_once 'vendor/autoload.php';
+
+            error_log("Excel Export: Creating spreadsheet with " . count($requests) . " records");
 
             // Create new Spreadsheet object
             $spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
+
+            // Set UTF-8 encoding
+            $spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
+            $spreadsheet->getDefaultStyle()->getFont()->setSize(10);
 
             // Set document properties
             $spreadsheet->getProperties()
@@ -765,13 +822,21 @@ class AdminController {
             $row = 2;
             $no = 1;
             foreach ($requests as $request) {
+                // Sanitize data to prevent corruption
+                $tanggal = isset($request['created_at']) ? date('d/m/Y', strtotime($request['created_at'])) : '';
+                $jenisSurat = htmlspecialchars_decode($request['letter_type_name'] ?? '', ENT_QUOTES);
+                $namaPemohon = htmlspecialchars_decode($request['user_full_name'] ?? '', ENT_QUOTES);
+                $nik = $request['user_nik'] ?? '';
+                $status = ucfirst($request['status'] ?? 'pending');
+                $catatan = htmlspecialchars_decode($request['admin_notes'] ?? '', ENT_QUOTES);
+
                 $sheet->setCellValue('A' . $row, $no++);
-                $sheet->setCellValue('B' . $row, date('d/m/Y', strtotime($request['created_at'])));
-                $sheet->setCellValue('C' . $row, htmlspecialchars($request['letter_type_name']));
-                $sheet->setCellValue('D' . $row, htmlspecialchars($request['user_full_name']));
-                $sheet->setCellValue('E' . $row, htmlspecialchars($request['user_nik']));
-                $sheet->setCellValue('F' . $row, ucfirst($request['status']));
-                $sheet->setCellValue('G' . $row, htmlspecialchars($request['admin_notes'] ?? ''));
+                $sheet->setCellValue('B' . $row, $tanggal);
+                $sheet->setCellValue('C' . $row, $jenisSurat);
+                $sheet->setCellValue('D' . $row, $namaPemohon);
+                $sheet->setCellValue('E' . $row, $nik);
+                $sheet->setCellValue('F' . $row, $status);
+                $sheet->setCellValue('G' . $row, $catatan);
 
                 $row++;
             }
@@ -779,19 +844,48 @@ class AdminController {
             // Set filename
             $filename = 'data_surat_' . date('Y-m-d_H-i-s') . '.xlsx';
 
-            // Redirect output to a client’s web browser (Excel2007)
-            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            header('Content-Disposition: attachment;filename="' . $filename . '"');
-            header('Cache-Control: max-age=0');
+            error_log("Excel Export: Generated filename: $filename");
 
+            // Final cleanup - ensure no output buffers remain and no previous output
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+
+            // Check if any output has been sent already
+            if (headers_sent($file, $line)) {
+                error_log("Excel Export: Headers already sent in $file:$line - cannot send Excel file");
+                throw new Exception('Cannot send Excel file - output already started');
+            }
+
+            // Set headers for Excel download (minimal required headers)
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+            header('Pragma: public');
+            header('Content-Transfer-Encoding: binary');
+
+            // Add UTF-8 BOM to ensure proper encoding
+            echo "\xEF\xBB\xBF";
+
+            // Create writer and save directly to output without buffering
             $writer = PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
             $writer->save('php://output');
+
+            // End the script immediately to prevent any additional output
             exit;
 
         } catch (Exception $e) {
             error_log("Excel Export Error: " . $e->getMessage());
-            // Fallback to HTML table method
-            $this->createExcelFileHTML($requests);
+            error_log("Excel Export Stack Trace: " . $e->getTraceAsString());
+
+            // Clean output and redirect with error
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+
+            $_SESSION['error'] = 'Gagal membuat file Excel: ' . $e->getMessage();
+            header('Location: ' . BASE_URL . '/admin/export');
+            exit;
         }
     }
 
@@ -799,16 +893,33 @@ class AdminController {
      * Fallback: Create and download Excel file as HTML table
      */
     private function createExcelFileHTML($requests) {
-        // Set headers for Excel download
-        header('Content-Type: application/vnd.ms-excel');
-        header('Content-Disposition: attachment;filename="data_surat_' . date('Y-m-d_H-i-s') . '.xls"');
-        header('Cache-Control: max-age=0');
+        try {
+            // Clean any existing output buffers
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
 
-        // Create Excel content
-        $excelContent = $this->generateExcelContent($requests);
+            error_log("Excel Export Fallback: Using HTML table method for " . count($requests) . " records");
 
-        echo $excelContent;
-        exit;
+            // Set headers for Excel download
+            header('Content-Type: application/vnd.ms-excel');
+            header('Content-Disposition: attachment; filename="data_surat_' . date('Y-m-d_H-i-s') . '.xls"');
+            header('Content-Transfer-Encoding: binary');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Expires: 0');
+
+            // Create Excel content
+            $excelContent = $this->generateExcelContent($requests);
+
+            echo $excelContent;
+            exit;
+        } catch (Exception $e) {
+            error_log("Excel Export HTML Fallback Error: " . $e->getMessage());
+            $_SESSION['error'] = 'Gagal membuat file Excel: ' . $e->getMessage();
+            header('Location: ' . BASE_URL . '/admin/export');
+            exit;
+        }
     }
 
     /**

@@ -290,33 +290,55 @@ function createMobileCard(item, index) {
 }
 
 function handleExport(format) {
-    const filteredData = filterData();
-
-    if (filteredData.length === 0) {
-        alert('Tidak ada data untuk diekspor. Silakan pilih filter terlebih dahulu.');
+    // Handle different export formats
+    if (format === 'pdf') {
+        alert('Fitur Export PDF massal belum tersedia. Gunakan download PDF individual untuk setiap surat.');
         return;
     }
 
-    // Show loading state
-    const button = document.getElementById(`btn-export-${format}`);
-    const originalText = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = `
-        <svg class="w-5 h-5 animate-spin mr-2" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Mengexport...
-    `;
+    if (format === 'excel') {
+        // Get filter values from form inputs
+        const dariTanggal = document.getElementById('dari_tanggal').value;
+        const sampaiTanggal = document.getElementById('sampai_tanggal').value;
 
-    // Simulate export process
-    setTimeout(() => {
-        alert(`Data berhasil diekspor dalam format ${format.toUpperCase()}!\n\nJumlah data: ${filteredData.length}`);
+        // Build URL with parameters
+        let baseUrl = window.baseUrl || window.BASE_URL || '';
+        if (!baseUrl) {
+            alert('Error: Base URL tidak ditemukan. Silakan refresh halaman.');
+            return;
+        }
 
-        // Reset button
-        button.disabled = false;
-        button.innerHTML = originalText;
-    }, 2000);
+        // Ensure baseUrl doesn't end with slash for proper concatenation
+        baseUrl = baseUrl.replace(/\/$/, '');
+
+        let url = `${baseUrl}/admin/export/excel`;
+        const params = new URLSearchParams();
+
+        if (dariTanggal) {
+            params.append('dari_tanggal', dariTanggal);
+        }
+        if (sampaiTanggal) {
+            params.append('sampai_tanggal', sampaiTanggal);
+        }
+
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+
+        console.log('Base URL:', baseUrl);
+        console.log('Exporting Excel with URL:', url);
+        console.log('Filter params - Dari:', dariTanggal, 'Sampai:', sampaiTanggal);
+
+        // Trigger download by redirecting to the export endpoint
+        try {
+            window.location.href = url;
+        } catch (error) {
+            console.error('Error redirecting:', error);
+            alert('Terjadi kesalahan saat mengakses export. Silakan coba lagi.');
+        }
+    } else {
+        alert(`Format export ${format.toUpperCase()} belum didukung.`);
+    }
 }
 
 function handleRowsPerPageChange() {

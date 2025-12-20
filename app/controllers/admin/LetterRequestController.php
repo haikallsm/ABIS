@@ -275,11 +275,28 @@ class LetterRequestController
                     // Get PDF file path using LetterService
                     $pdfFilePath = $this->letterService->getLetterFilePath($requestId);
 
-                    // Only send PDF if file exists and path is valid
-                    if ($pdfFilePath && file_exists($pdfFilePath)) {
-                        error_log('PDF file found and ready to send: ' . $pdfFilePath);
-                    } else {
-                        error_log('PDF file not found or invalid path: ' . ($pdfFilePath ?? 'null'));
+                    // Wait for file to be available (with retry logic)
+                    $maxRetries = 5;
+                    $retryCount = 0;
+                    $fileReady = false;
+
+                    while ($retryCount < $maxRetries && !$fileReady) {
+                        if ($pdfFilePath && file_exists($pdfFilePath) && filesize($pdfFilePath) > 0) {
+                            $fileReady = true;
+                            error_log('PDF file found and ready to send: ' . $pdfFilePath . ' (size: ' . filesize($pdfFilePath) . ' bytes)');
+                        } else {
+                            $retryCount++;
+                            if ($retryCount < $maxRetries) {
+                                error_log('PDF file not ready yet, retrying in 1 second... (attempt ' . $retryCount . '/' . $maxRetries . ')');
+                                sleep(1); // Wait 1 second before retry
+                                // Refresh the path in case it was updated
+                                $pdfFilePath = $this->letterService->getLetterFilePath($requestId);
+                            }
+                        }
+                    }
+
+                    if (!$fileReady) {
+                        error_log('PDF file not found after ' . $maxRetries . ' retries: ' . ($pdfFilePath ?? 'null'));
                         $pdfFilePath = null;
                     }
 
