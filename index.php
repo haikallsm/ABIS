@@ -384,6 +384,18 @@ $router->add('GET', '/admin/dashboard/stats', function() {
 });
 
 // Letter Requests
+$router->add('GET', '/admin/letter-requests', function() {
+    global $letterRequestController;
+    requireAuth('admin');
+    $letterRequestController->index();
+});
+
+$router->add('GET', '/admin/letter-requests/:id', function($params) {
+    global $letterRequestController;
+    requireAuth('admin');
+    $letterRequestController->show($params['id']);
+});
+
 $router->add('GET', '/admin/requests', function() {
     global $letterRequestController;
     requireAuth('admin');

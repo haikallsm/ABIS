@@ -528,8 +528,8 @@ function downloadPDF(requestId) {
 
 // View details
 function viewDetails(requestId) {
-    // For now, just redirect to download (we can enhance this later)
-    window.open(`${BASE_URL}/admin/requests/${requestId}/download`, '_blank');
+    // Redirect to detail page, not download
+    window.location.href = `${BASE_URL}/admin/letter-requests/${requestId}`;
 }
 
 // Filter by status

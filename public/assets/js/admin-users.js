@@ -154,6 +154,100 @@ function sortTable(col) {
     rows.forEach(r => table.appendChild(r));
 }
 
+// Badge management functions to prevent disappearing text
+function ensureRoleBadges() {
+    const roleBadges = document.querySelectorAll('.role-badge');
+
+    roleBadges.forEach(badge => {
+        const role = badge.getAttribute('data-role');
+        const currentText = badge.textContent.trim();
+
+        // If text is missing or wrong, restore it
+        if (!currentText || currentText === '' || currentText === 'undefined') {
+            let displayText = 'Unknown';
+            let bgClass = 'bg-gray-100 text-gray-700 border-gray-200';
+            let textClass = 'text-gray-700';
+
+            if (role === 'admin') {
+                displayText = 'Admin';
+                bgClass = 'bg-blue-100';
+                textClass = 'text-blue-700';
+            } else if (role === 'user') {
+                displayText = 'User';
+                bgClass = 'bg-green-100';
+                textClass = 'text-green-700';
+            }
+
+            badge.textContent = displayText;
+            badge.className = `px-3 py-1.5 rounded-full text-xs font-semibold role-badge ${bgClass} ${textClass} border`;
+            console.log(`Restored role badge: ${displayText}`);
+        }
+    });
+}
+
+function ensureStatusBadges() {
+    const statusBadges = document.querySelectorAll('.status-badge');
+
+    statusBadges.forEach(badge => {
+        const status = badge.getAttribute('data-status');
+        const currentText = badge.textContent.trim();
+
+        // If text is missing, restore it
+        if (!currentText || currentText === '' || currentText === 'undefined') {
+            let displayText = 'Unknown';
+
+            if (status === 'active') {
+                displayText = 'Aktif';
+            } else if (status === 'inactive') {
+                displayText = 'Tidak Aktif';
+            }
+
+            badge.textContent = displayText;
+            console.log(`Restored status badge: ${displayText}`);
+        }
+    });
+}
+
+// Monitor and fix badges periodically
+function monitorBadges() {
+    // Check every 2 seconds
+    setInterval(() => {
+        ensureRoleBadges();
+        ensureStatusBadges();
+    }, 2000);
+
+    // Also check after any DOM changes
+    const observer = new MutationObserver(() => {
+        setTimeout(() => {
+            ensureRoleBadges();
+            ensureStatusBadges();
+        }, 100);
+    });
+
+    // Observe changes to the table body
+    const tableBody = document.getElementById('userTable');
+    if (tableBody) {
+        observer.observe(tableBody, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class', 'style']
+        });
+    }
+}
+
+// Initialize badge monitoring
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial check
+    ensureRoleBadges();
+    ensureStatusBadges();
+
+    // Start monitoring
+    monitorBadges();
+
+    console.log('Badge monitoring initialized');
+});
+
 // Add SweetAlert2 CDN if not already loaded
 if (typeof Swal === 'undefined') {
     const script = document.createElement('script');

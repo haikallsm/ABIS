@@ -2,7 +2,7 @@
 // Set page metadata
 $title = 'Manajemen Users';
 $extra_css = ['admin-dashboard.css'];
-$extra_js = ['admin-dashboard'];
+$extra_js = ['admin-dashboard', 'admin-users'];
 ?>
 
 <body class="cream-bg antialiased">
@@ -245,12 +245,12 @@ $extra_js = ['admin-dashboard'];
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <span class="px-3 py-1.5 rounded-full text-xs font-semibold <?php echo $user['role'] === 'admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-green-100 border-green-200'; ?>">
-                                            <?php echo ucfirst($user['role']); ?>
+                                        <span class="px-3 py-1.5 rounded-full text-xs font-semibold role-badge <?php echo $user['role'] === 'admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : ($user['role'] === 'user' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-700 border border-gray-200'); ?>" data-role="<?php echo htmlspecialchars($user['role']); ?>">
+                                            <?php echo ucfirst($user['role'] ?: 'Unknown'); ?>
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-center">
-                                        <span class="px-3 py-1.5 bg-green-100 text-green-700 font-medium rounded-full text-xs border border-green-200">
+                                        <span class="px-3 py-1.5 bg-green-100 text-green-700 font-medium rounded-full text-xs border border-green-200 status-badge" data-status="active">
                                             Aktif
                                         </span>
                                     </td>

@@ -64,26 +64,79 @@ class LetterRequestController
     }
 
     /**
-     * Display letter request details
+     * Display letter request details (PDF preview)
      */
     public function show($requestId)
     {
-        $request = $this->letterRequestModel->findById($requestId);
-        if (!$request) {
-            $this->redirect('/admin/letter-requests', 'Pengajuan surat tidak ditemukan');
+        try {
+            $request = $this->letterRequestModel->findById($requestId);
+            if (!$request) {
+                throw new Exception('Pengajuan surat tidak ditemukan');
+            }
+
+            if ($request['status'] !== STATUS_APPROVED) {
+                throw new Exception('Surat belum disetujui - tidak dapat ditampilkan');
+            }
+
+            if (empty($request['generated_file'])) {
+                throw new Exception('File surat belum dibuat');
+            }
+
+            // Get PDF file path using service
+            $filePath = $this->letterService->getLetterFilePath($requestId);
+
+            if (!$filePath || !file_exists($filePath)) {
+                throw new Exception('File surat tidak ditemukan');
+            }
+
+            // Set headers for inline PDF display (preview)
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="' . basename($filePath) . '"');
+            header('Content-Length: ' . filesize($filePath));
+            header('Cache-Control: private, max-age=0, must-revalidate');
+            header('Pragma: public');
+            header('Accept-Ranges: bytes');
+
+            // Clear output buffer
+            if (ob_get_level()) {
+                ob_clean();
+            }
+            flush();
+
+            // Output file for inline display
+            readfile($filePath);
+            exit;
+
+        } catch (Exception $e) {
+            // Show error page instead of PDF
+            $errorMessage = $e->getMessage();
+            echo "<!DOCTYPE html>
+<html lang='id'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Preview Surat - Error</title>
+    <link href='" . ASSETS_URL . "/css/admin-dashboard.css' rel='stylesheet'>
+</head>
+<body class='cream-bg'>
+    <div class='min-h-screen flex items-center justify-center'>
+        <div class='max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center'>
+            <div class='mb-6'>
+                <svg class='mx-auto h-16 w-16 text-red-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z'></path>
+                </svg>
+            </div>
+            <h2 class='text-xl font-bold text-gray-800 mb-4'>Preview Tidak Tersedia</h2>
+            <p class='text-gray-600 mb-6'>{$errorMessage}</p>
+            <a href='/admin/letter-requests' class='bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition-colors'>
+                Kembali ke Daftar Pengajuan
+            </a>
+        </div>
+    </div>
+</body>
+</html>";
+            exit;
         }
-
-        $letterType = $this->letterTypeModel->findById($request['letter_type_id']);
-        $user = $this->userModel->findById($request['user_id']);
-
-        $viewData = [
-            'request' => $request,
-            'letterType' => $letterType,
-            'user' => $user,
-            'pageTitle' => 'Detail Pengajuan Surat'
-        ];
-
-        $this->render('admin/letter-request-detail', $viewData);
     }
 
     /**
@@ -211,10 +264,11 @@ class LetterRequestController
             header('Cache-Control: private, max-age=0, must-revalidate');
             header('Pragma: public');
 
-            // Clear output buffer
+            // Clear output buffer and flush
             if (ob_get_level()) {
                 ob_clean();
             }
+            flush();
 
             // Output file
             readfile($filePath);

@@ -6,20 +6,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize request management
 function initRequestManagement() {
-    // Reset all button styles to ensure they are visible
-    resetButtonStyles();
-    setupStatusSelectHandlers();
-    setupModalHandlers();
-    setupFormHandlers();
+    // Only run on letter-requests page, not on users page
+    if (window.location.pathname.includes('/admin/letter-requests') ||
+        window.location.pathname.includes('/admin/requests')) {
 
-    // Force button visibility after a short delay to ensure DOM is fully loaded
-    setTimeout(() => {
-        ensureActionButtonsVisibility();
-        console.log('Admin requests page fully initialized');
-    }, 100);
+        // Reset all button styles to ensure they are visible
+        resetButtonStyles();
+        setupStatusSelectHandlers();
+        setupModalHandlers();
+        setupFormHandlers();
 
-    // Add continuous monitoring to prevent buttons from disappearing
-    startButtonVisibilityMonitor();
+        // Force button visibility after a short delay to ensure DOM is fully loaded
+        setTimeout(() => {
+            ensureActionButtonsVisibility();
+            console.log('Admin requests page fully initialized');
+        }, 100);
+
+        // Add continuous monitoring to prevent buttons from disappearing
+        startButtonVisibilityMonitor();
+    } else {
+        console.log('Admin requests JS loaded but not on requests page - skipping initialization');
+    }
 }
 
 // Monitor button visibility and text content continuously to prevent hiding

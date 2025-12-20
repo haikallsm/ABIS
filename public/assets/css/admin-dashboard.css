@@ -514,3 +514,20 @@
     transform: none;
     box-shadow: none;
 }
+
+/* Protect role and status badges from disappearing */
+.role-badge, .status-badge {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    position: relative !important;
+}
+
+/* Prevent badge text from being cleared */
+.role-badge:empty::after,
+.status-badge:empty::after {
+    content: "Loading..." !important;
+    color: inherit !important;
+    font-style: italic !important;
+}
