@@ -21,9 +21,7 @@ $extra_js = ['admin-export'];
                     <p class="sidebar-section-title uppercase tracking-wider mb-3">Menu Utama</p>
 
                     <a href="<?php echo BASE_URL; ?>/admin/dashboard" class="sidebar-link flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                        </svg>
+                        <img src="/public/assets/icons/home.svg" alt="Menu" class="w-5 h-5" />
                         <span>Dashboard</span>
                     </a>
                 </div>
@@ -31,9 +29,7 @@ $extra_js = ['admin-export'];
                 <div class="px-6">
                     <p class="sidebar-section-title uppercase tracking-wider mb-3">Pengelolaan Data</p>
                     <a href="<?php echo BASE_URL; ?>/admin/users" class="sidebar-link flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20h-5v-2a3 3 0 00-5.356-1.857M9 20v-2a3 3 0 015.548-1.077M10 11a2 2 0 100-4 2 2 0 000 4zm7 0a2 2 0 100-4 2 2 0 000 4zM10 17a5 5 0 008.274 2.87M15 17a5 5 0 008.274 2.87"></path>
-                        </svg>
+                        <img src="/public/assets/icons/file.svg" alt="Menu" class="w-5 h-5" />
                         <span>Users</span>
                     </a>
 

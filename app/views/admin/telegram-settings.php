@@ -20,9 +20,7 @@
                     <p class="sidebar-section-title uppercase tracking-wider mb-3">Menu Utama</p>
 
                     <a href="<?php echo BASE_URL; ?>/admin/dashboard" class="sidebar-link flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                        </svg>
+                        <img src="/public/assets/icons/home.svg" alt="Menu" class="w-5 h-5" />
                         <span>Dashboard</span>
                     </a>
                 </div>
@@ -30,16 +28,12 @@
                 <div class="px-6">
                     <p class="sidebar-section-title uppercase tracking-wider mb-3">Pengelolaan Data</p>
                     <a href="<?php echo BASE_URL; ?>/admin/users" class="sidebar-link flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20h-5v-2a3 3 0 00-5.356-1.857M9 20v-2a3 3 0 015.548-1.077M10 11a2 2 0 100-4 2 2 0 000 4zm7 0a2 2 0 100-4 2 2 0 000 4zM10 17a5 5 0 008.274 2.87M15 17a5 5 0 008.274 2.87"></path>
-                        </svg>
+                        <img src="/public/assets/icons/users.svg" alt="Menu" class="w-5 h-5" />
                         <span>Users</span>
                     </a>
 
                     <a href="<?php echo BASE_URL; ?>/admin/requests" class="sidebar-link flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v4a1 1 0 001 1h6a1 1 0 001-1V7m0 0a2 2 0 00-2-2H9a2 2 0 00-2 2m0 0v11a2 2 0 002 2h4a2 2 0 002-2V7m-4-2H8"></path>
-                        </svg>
+                        <img src="/public/assets/icons/data-storage.svg" alt="Menu" class="w-5 h-5" />
                         <span>Export Data</span>
                     </a>
                 </div>
@@ -47,16 +41,12 @@
                     <p class="sidebar-section-title uppercase tracking-wider mb-3">Surat & Dokumen</p>
 
                     <a href="<?php echo BASE_URL; ?>/admin/letter-requests" class="sidebar-link flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2m-6 0h6"></path>
-                        </svg>
+                        <img src="/public/assets/icons/inbox.svg" alt="Menu" class="w-5 h-5" />
                         <span>Pengajuan Surat</span>
                     </a>
 
                     <a href="<?php echo BASE_URL; ?>/admin/telegram-settings" class="sidebar-link active flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                        </svg>
+                        <img src="/public/assets/icons/message.svg" alt="Menu" class="w-5 h-5" />
                         <span>Telegram Bot</span>
                     </a>
 
@@ -69,9 +59,7 @@
                     <form method="POST" action="<?php echo BASE_URL; ?>/logout" class="inline-block w-full">
                         <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                         <a href="#" onclick="this.closest('form').submit(); return false;" class="logout-link">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                            </svg>
+                            <img src="/public/assets/icons/logout.svg" alt="Logout" class="w-5 h-5" />
                             <span class="text-xs">Logout</span>
                         </a>
                     </form>
@@ -212,7 +200,7 @@
                     <form method="POST" id="botForm" class="space-y-6">
                         <!-- Bot Token -->
                         <div>
-                            <label for="bot_token" class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                            <label for="bot_token" class="flex items-center text-sm font-semibold text-gray-800 mb-3">
                                 <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
                                 </svg>
@@ -224,7 +212,7 @@
                                    placeholder="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
                                    required>
                             <div class="mt-3 flex items-start space-x-2">
-                                <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 <p class="text-sm text-gray-600">
@@ -236,7 +224,7 @@
 
                         <!-- Chat ID -->
                         <div>
-                            <label for="test_chat_id" class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                            <label for="test_chat_id" class="flex items-center text-sm font-semibold text-gray-800 mb-3">
                                 <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                                 </svg>
@@ -247,7 +235,7 @@
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 text-sm"
                                    placeholder="123456789">
                             <div class="mt-3 flex items-start space-x-2">
-                                <svg class="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-yellow-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                                 </svg>
                                 <p class="text-sm text-gray-600">
@@ -319,7 +307,7 @@
                                     $colorClass = $isError ? 'text-red-400' : 'text-green-400';
                                 ?>
                                     <div class="flex items-start space-x-3 py-1">
-                                        <span class="text-gray-500 text-xs flex-shrink-0"><?php echo $timestamp; ?></span>
+                                        <span class="text-gray-500 text-xs shrink-0"><?php echo $timestamp; ?></span>
                                         <span class="text-gray-300 text-xs">→</span>
                                         <span class="<?php echo $colorClass; ?> text-xs break-all"><?php echo htmlspecialchars($message); ?></span>
                                     </div>
@@ -329,7 +317,7 @@
                             <?php endforeach; ?>
                         </div>
                         <div class="mt-4 flex items-center justify-between text-sm">
-                            <span class="text-gray-600">Menampilkan <?php echo count($recentLogs); ?> log terbaru</span>
+                            <span class="text-gray-600">Menampilkan <?php echo count($recentLogs ?? []); ?> log terbaru</span>
                             <span class="text-gray-500">📄 <?php echo htmlspecialchars(basename(TELEGRAM_LOG_FILE)); ?></span>
                         </div>
                     <?php else: ?>
@@ -423,7 +411,7 @@
 
                     <div class="space-y-4">
                         <div class="flex items-start space-x-3">
-                            <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                                 <span class="text-xs font-bold text-blue-600">1</span>
                             </div>
                             <div>
@@ -433,7 +421,7 @@
                         </div>
 
                         <div class="flex items-start space-x-3">
-                            <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                            <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                                 <span class="text-xs font-bold text-green-600">2</span>
                             </div>
                             <div>
@@ -443,7 +431,7 @@
                         </div>
 
                         <div class="flex items-start space-x-3">
-                            <div class="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                            <div class="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center shrink-0">
                                 <span class="text-xs font-bold text-yellow-600">3</span>
                             </div>
                             <div>
@@ -453,7 +441,7 @@
                         </div>
 
                         <div class="flex items-start space-x-3">
-                            <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                            <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
                                 <span class="text-xs font-bold text-purple-600">4</span>
                             </div>
                             <div>

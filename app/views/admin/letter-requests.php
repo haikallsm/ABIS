@@ -44,9 +44,7 @@ button[id^="reject-btn-"]:hover {
                     <p class="sidebar-section-title uppercase tracking-wider mb-3">Menu Utama</p>
 
                     <a href="<?php echo BASE_URL; ?>/admin/dashboard" class="sidebar-link flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                        </svg>
+                        <img src="/public/assets/icons/home.svg" alt="Menu" class="w-5 h-5" />
                         <span>Dashboard</span>
                     </a>
                 </div>
@@ -55,16 +53,12 @@ button[id^="reject-btn-"]:hover {
                     <p class="sidebar-section-title uppercase tracking-wider mb-3">Pengelolaan Data</p>
 
                     <a href="<?php echo BASE_URL; ?>/admin/users" class="sidebar-link flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20h-5v-2a3 3 0 00-5.356-1.857M9 20v-2a3 3 0 015.548-1.077M10 11a2 2 0 100-4 2 2 0 000 4zm7 0a2 2 0 100-4 2 2 0 000 4zM10 17a5 5 0 008.274 2.87M15 17a5 5 0 008.274 2.87"></path>
-                        </svg>
+                        <img src="/public/assets/icons/users.svg" alt="Menu" class="w-5 h-5" />
                         <span>Users</span>
                     </a>
 
                     <a href="<?php echo BASE_URL; ?>/admin/requests" class="sidebar-link flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v4a1 1 0 001 1h6a1 1 0 001-1V7m0 0a2 2 0 00-2-2H9a2 2 0 00-2 2m0 0v11a2 2 0 002 2h4a2 2 0 002-2V7m-4-2H8"></path>
-                        </svg>
+                        <img src="/public/assets/icons/data-storage.svg" alt="Menu" class="w-5 h-5" />
                         <span>Export Data</span>
                     </a>
                 </div>
@@ -73,16 +67,12 @@ button[id^="reject-btn-"]:hover {
                     <p class="sidebar-section-title uppercase tracking-wider mb-3">Surat & Dokumen</p>
 
                     <a href="<?php echo BASE_URL; ?>/admin/letter-requests" class="sidebar-link active flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2m-6 0h6"></path>
-                        </svg>
+                        <img src="/public/assets/icons/inbox.svg" alt="Menu" class="w-5 h-5" />
                         <span>Pengajuan Surat</span>
                     </a>
 
                     <a href="<?php echo BASE_URL; ?>/admin/telegram-settings" class="sidebar-link flex items-center py-4">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                        </svg>
+                        <img src="/public/assets/icons/message.svg" alt="Menu" class="w-5 h-5" />
                         <span>Telegram Bot</span>
                     </a>
                 </div>
@@ -95,9 +85,7 @@ button[id^="reject-btn-"]:hover {
                     <form method="POST" action="<?php echo BASE_URL; ?>/logout" class="inline-block w-full">
                         <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                         <a href="#" onclick="this.closest('form').submit(); return false;" class="logout-link">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                            </svg>
+                            <img src="/public/assets/icons/logout.svg" alt="Logout" class="w-5 h-5" />
                             <span class="text-xs">Logout</span>
                         </a>
                     </form>
