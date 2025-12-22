@@ -155,7 +155,7 @@ $extra_js = ['dynamic-form-builder'];
                         </div>
 
                         <!-- Dynamic Form Container -->
-                        <div id="dynamic-form-container" class="min-h-[200px]">
+                        <div id="dynamic-form-container" class="min-h-50">
                             <div class="text-center text-gray-500 py-8">
                                 <i class="fas fa-arrow-up text-4xl mb-4 text-gray-300"></i>
                                 <p class="text-lg font-medium">Pilih jenis surat terlebih dahulu</p>

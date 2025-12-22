@@ -1546,15 +1546,15 @@ class AdminController {
      * @param string $birthDate
      * @return int
      */
-    private function calculateAge($birthDate) {
-        if (empty($birthDate)) return '';
+    private function calculateAge($birthDate): int {
+        if (empty($birthDate)) return 0;
 
         try {
             $birth = new DateTime($birthDate);
             $now = new DateTime();
             return $now->diff($birth)->y;
         } catch (Exception $e) {
-            return '';
+            return 0;
         }
     }
 
@@ -1681,9 +1681,9 @@ class AdminController {
 
             // Business certificate data - use merged data
             'nama_usaha' => $request['nama_usaha'] ?? BUSINESS_CERTIFICATE_PLACEHOLDER,
-            'jenis_usaha' => $request['jenis_usaha'] ?? '',
+            'jenis_usaha' => $request['jenis_usaha'] ?? DEFAULT_JENIS_USAHA,
             'mulai_usaha' => $request['mulai_usaha'] ?? '........',
-            'alamat_usaha' => $request['alamat_usaha'] ?? $request['alamat'] ?? '',
+            'alamat_usaha' => $request['alamat_usaha'] ?? ($request['alamat'] ?? ''),
             'luas_usaha' => $request['luas_usaha'] ?? '',
             'tujuan' => $request['tujuan'] ?? BUSINESS_PURPOSE,
             'penghasilan' => $request['penghasilan'] ?? '',
@@ -1701,27 +1701,15 @@ class AdminController {
             'nama_pasangan' => $request['nama_pasangan'] ?? '',
 
             // Event data - use merged data
-            'nama_kegiatan' => $request['nama_kegiatan'] ?? '',
-            'tanggal_kegiatan' => $request['tanggal_kegiatan'] ?? '',
-            'waktu_kegiatan' => $request['waktu_kegiatan'] ?? '',
-            'tempat_kegiatan' => $request['tempat_kegiatan'] ?? '',
-            'hiburan' => $request['hiburan'] ?? '',
+            'nama_kegiatan' => $request['nama_kegiatan'] ?? DEFAULT_NAMA_KEGIATAN,
+            'hari_kegiatan' => $request['hari_kegiatan'] ?? DEFAULT_HARI_KEGIATAN,
+            'tanggal_kegiatan' => $request['tanggal_kegiatan'] ?? date('d-m-Y'),
+            'waktu_kegiatan' => $request['waktu_kegiatan'] ?? DEFAULT_WAKTU_KEGIATAN,
+            'tempat_kegiatan' => $request['tempat_kegiatan'] ?? ($request['address'] ?? ''),
+            'hiburan' => $request['hiburan'] ?? DEFAULT_HIBURAN,
 
             // Calculate age if birth_date is available
-            'umur' => isset($request['birth_date']) ? $this->calculateAge($request['birth_date']) : '',
-
-            // Business permit data
-            'jenis_usaha' => DEFAULT_JENIS_USAHA,
-            'luas_usaha' => '',
-
-            // Event permit data
-            'umur' => '...',
-            'nama_kegiatan' => DEFAULT_NAMA_KEGIATAN,
-            'hari_kegiatan' => DEFAULT_HARI_KEGIATAN,
-            'tanggal_kegiatan' => date('d-m-Y'),
-            'waktu_kegiatan' => DEFAULT_WAKTU_KEGIATAN,
-            'tempat_kegiatan' => $request['address'] ?? '',
-            'hiburan' => DEFAULT_HIBURAN,
+            'umur' => !empty($request['birth_date']) ? $this->calculateAge($request['birth_date']) : ($request['umur'] ?? '0'),
         ];
     }
 
@@ -1849,17 +1837,28 @@ class AdminController {
      * @return string PDF content
      */
     private function generatePDFWithTemplate($request, $templateName) {
-        $userName = $request['user_full_name'];
-        $nik = $request['nik'] ?? 'N/A';
-        $requestDate = date('d F Y', strtotime($request['created_at']));
-        $approvedDate = date('d F Y');
 
-        // Get template file content
         $templatePath = TEMPLATE_DIR . $templateName . '.php';
+
         if (!file_exists($templatePath)) {
             error_log("Template not found: {$templatePath}");
             return $this->generateGenericLetter($request);
         }
+
+        $data = array_merge(
+            $request,
+            $this->getTemplateSpecificData($request),
+            [
+                'userName' => $request['user_full_name'] ?? '',
+                'nik' => $request['nik'] ?? 'N/A',
+                'requestDate' => !empty($request['created_at']) 
+                ? date('d F Y', strtotime($request['created_at'])) : '',
+                'approvedDate' => date('d F Y'),
+
+            ]
+        );
+
+        extract($data, EXTR_SKIP);
 
         // Load template and return content
         ob_start();
