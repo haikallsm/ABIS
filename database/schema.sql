@@ -2,13 +2,6 @@
 -- Created: December 2025
 -- Updated: December 2025
 
--- Create database
-CREATE DATABASE IF NOT EXISTS surat_in_db
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
-
-USE surat_in_db;
-
 -- Users table - menyimpan data pengguna dan admin
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,

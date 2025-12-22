@@ -12,7 +12,7 @@ require_once 'app/models/LetterType.php';
 
 class AdminController {
     private $userModel;
-    private $letterRequdestModel;
+    private $letterRequestModel;
     private $letterTypeModel;
 
     public function __construct() {

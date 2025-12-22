@@ -233,7 +233,7 @@ $extra_js = ['admin-dashboard', 'admin-users'];
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <span class="px-3 py-1.5 rounded-full text-xs font-semibold role-badge <?php echo $user['role'] === 'admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : ($user['role'] === 'user' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-700 border border-gray-200'); ?>" data-role="<?php echo htmlspecialchars($user['role']); ?>">
+                                        <span class="px-3 py-1.5 rounded-full text-xs font-semibold role-badge <?php echo $user['role'] === 'admin' ? 'bg-primary-100 text-primary-700 border border-primary-200' : ($user['role'] === 'user' ? 'bg-secondary-100 text-secondary-700 border-secondary-200' : 'bg-gray-100 text-gray-600 border-gray-200'); ?>" data-role="<?php echo htmlspecialchars($user['role']); ?>">
                                             <?php echo ucfirst($user['role'] ?: 'Unknown'); ?>
                                         </span>
                                     </td>
